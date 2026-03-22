@@ -62,7 +62,8 @@
 ## Skill Guardian（自动守护）
 
 - **脚本：** `skills/pipeline/skill_guardian.py`
-- **Cron Job ID：** `1b461446-d850-417c-8ff1-987e48ebd578`（每小时）
+- **Cron Job ID：** `1b461446-d850-417c-8ff1-987e48ebd578`
+- **守护进程：** launchd `com.lobster.skill-guardian`（每小时自动触发）
 - **监控：** `~/.agents/skills/` 全部 `.md` 文件 MD5
 - **基准状态：** `memory/skill_guardian_state.json`（206个文件已快照）
 - **本地备份：** `~/.qclaw/workspace/skills-backup/`（rsync，每次运行更新）

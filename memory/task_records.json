@@ -1,0 +1,203 @@
+[
+  {
+    "time": "2026-03-22T03:44:57.584699",
+    "task_type": "网页浏览",
+    "organ": "眼睛",
+    "success": true,
+    "interrupted": false,
+    "duration_ms": null
+  },
+  {
+    "time": "2026-03-22T03:44:57.585026",
+    "task_type": "网页截图",
+    "organ": "眼睛",
+    "success": true,
+    "interrupted": false,
+    "duration_ms": null
+  },
+  {
+    "time": "2026-03-22T03:44:57.585233",
+    "task_type": "读取网页",
+    "organ": "眼睛",
+    "success": true,
+    "interrupted": false,
+    "duration_ms": null
+  },
+  {
+    "time": "2026-03-22T03:44:57.585413",
+    "task_type": "UI自动化",
+    "organ": "眼睛",
+    "success": false,
+    "interrupted": false,
+    "duration_ms": null,
+    "error": "timeout"
+  },
+  {
+    "time": "2026-03-22T03:44:57.585585",
+    "task_type": "表单填写",
+    "organ": "眼睛",
+    "success": true,
+    "interrupted": true,
+    "duration_ms": null
+  },
+  {
+    "time": "2026-03-22T03:44:57.585751",
+    "task_type": "点击操作",
+    "organ": "眼睛",
+    "success": true,
+    "interrupted": false,
+    "duration_ms": null
+  },
+  {
+    "time": "2026-03-22T03:44:57.585919",
+    "task_type": "页面解析",
+    "organ": "眼睛",
+    "success": true,
+    "interrupted": false,
+    "duration_ms": null
+  },
+  {
+    "time": "2026-03-22T03:44:57.586099",
+    "task_type": "信号监控",
+    "organ": "耳朵",
+    "success": true,
+    "interrupted": false,
+    "duration_ms": null
+  },
+  {
+    "time": "2026-03-22T03:44:57.586273",
+    "task_type": "消息监听",
+    "organ": "耳朵",
+    "success": true,
+    "interrupted": false,
+    "duration_ms": null
+  },
+  {
+    "time": "2026-03-22T03:44:57.586455",
+    "task_type": "通知捕获",
+    "organ": "耳朵",
+    "success": true,
+    "interrupted": false,
+    "duration_ms": null
+  },
+  {
+    "time": "2026-03-22T03:44:57.586637",
+    "task_type": "问题分析",
+    "organ": "大脑",
+    "success": true,
+    "interrupted": false,
+    "duration_ms": null
+  },
+  {
+    "time": "2026-03-22T03:44:57.586827",
+    "task_type": "方案制定",
+    "organ": "大脑",
+    "success": true,
+    "interrupted": false,
+    "duration_ms": null
+  },
+  {
+    "time": "2026-03-22T03:44:57.587018",
+    "task_type": "风险评估",
+    "organ": "大脑",
+    "success": true,
+    "interrupted": false,
+    "duration_ms": null
+  },
+  {
+    "time": "2026-03-22T03:44:57.587205",
+    "task_type": "决策建议",
+    "organ": "大脑",
+    "success": false,
+    "interrupted": true,
+    "duration_ms": null
+  },
+  {
+    "time": "2026-03-22T03:44:57.587401",
+    "task_type": "逻辑推理",
+    "organ": "大脑",
+    "success": true,
+    "interrupted": false,
+    "duration_ms": null
+  },
+  {
+    "time": "2026-03-22T03:44:57.587606",
+    "task_type": "记忆检索",
+    "organ": "记忆",
+    "success": true,
+    "interrupted": false,
+    "duration_ms": null
+  },
+  {
+    "time": "2026-03-22T03:44:57.587817",
+    "task_type": "记忆写入",
+    "organ": "记忆",
+    "success": true,
+    "interrupted": false,
+    "duration_ms": null
+  },
+  {
+    "time": "2026-03-22T03:44:57.588029",
+    "task_type": "上下文读取",
+    "organ": "记忆",
+    "success": true,
+    "interrupted": false,
+    "duration_ms": null
+  },
+  {
+    "time": "2026-03-22T03:44:57.588245",
+    "task_type": "Pipeline执行",
+    "organ": "工具",
+    "success": true,
+    "interrupted": false,
+    "duration_ms": null
+  },
+  {
+    "time": "2026-03-22T03:44:57.588480",
+    "task_type": "Skill调用",
+    "organ": "工具",
+    "success": true,
+    "interrupted": false,
+    "duration_ms": null
+  },
+  {
+    "time": "2026-03-22T03:44:57.588704",
+    "task_type": "脚本执行",
+    "organ": "工具",
+    "success": true,
+    "interrupted": false,
+    "duration_ms": null
+  },
+  {
+    "time": "2026-03-22T03:44:57.588932",
+    "task_type": "文字回复",
+    "organ": "嘴巴",
+    "success": true,
+    "interrupted": false,
+    "duration_ms": null
+  },
+  {
+    "time": "2026-03-22T03:44:57.589173",
+    "task_type": "消息推送",
+    "organ": "嘴巴",
+    "success": true,
+    "interrupted": false,
+    "duration_ms": null
+  },
+  {
+    "time": "2026-03-22T03:44:57.589426",
+    "task_type": "文件写入",
+    "organ": "手脚",
+    "success": true,
+    "interrupted": false,
+    "duration_ms": null
+  },
+  {
+    "time": "2026-03-22T03:44:57.589685",
+    "task_type": "文件读取",
+    "organ": "手脚",
+    "success": true,
+    "interrupted": false,
+    "duration_ms": null
+  }
+]

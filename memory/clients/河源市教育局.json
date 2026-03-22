@@ -1,0 +1,97 @@
+{
+  "name": "河源市教育局",
+  "log": [
+    {
+      "time": "2026-03-22T00:03:48.482597",
+      "stage": "S1_INTEL",
+      "findings": {
+        "cynefin": "Complex",
+        "weak_signals": [],
+        "red_attacks": [
+          "经办人被架空",
+          "领导层意见不合"
+        ],
+        "second_order": {},
+        "simulation": "有隐患需预处理"
+      }
+    },
+    {
+      "time": "2026-03-22T00:04:34.650651",
+      "stage": "S1_INTEL",
+      "input": "了解河源市教育局情报",
+      "cynefin": "Complex",
+      "weak": []
+    },
+    {
+      "time": "2026-03-22T00:04:34.650841",
+      "stage": "S2_CONTACT",
+      "input": "明天第一次见他们副局长",
+      "cynefin": "Complex",
+      "weak": []
+    },
+    {
+      "time": "2026-03-22T00:04:34.650961",
+      "stage": "S4_PROPOSAL",
+      "input": "今天突然说重新评估方案",
+      "cynefin": "Complex",
+      "weak": []
+    },
+    {
+      "time": "2026-03-22T00:04:39.351078",
+      "stage": "S4_PROPOSAL",
+      "input": "河源市教育局局长",
+      "cynefin": "Complex",
+      "weak": []
+    },
+    {
+      "time": "2026-03-22T00:21:11.019701",
+      "stage": "S4_PROPOSAL",
+      "input": "河源市教育局局长杨利华",
+      "cynefin": "Complex",
+      "weak": []
+    },
+    {
+      "time": "2026-03-22T00:21:11.019907",
+      "stage": "S4_PROPOSAL",
+      "input": "杨利华带队到学校检查疫情防控工作",
+      "cynefin": "Complex",
+      "weak": []
+    },
+    {
+      "time": "2026-03-22T00:21:11.020035",
+      "stage": "S4_PROPOSAL",
+      "input": "河源市第二中学更名为河源市第一实验学校",
+      "cynefin": "Complex",
+      "weak": []
+    },
+    {
+      "time": "2026-03-22T00:34:42.431414",
+      "stage": "S4_PROPOSAL",
+      "input": "河源市教育局杨利华S4阶段推进",
+      "cynefin": "Complex",
+      "weak": []
+    },
+    {
+      "time": "2026-03-22T00:34:58.438362",
+      "stage": "S4_PROPOSAL",
+      "input": "分析河源市教育局当前阶段",
+      "cynefin": "Complicated",
+      "weak": []
+    },
+    {
+      "time": "2026-03-22T02:25:39.160148",
+      "stage": "S1_INTEL",
+      "input": "冷情报：河源市教育局 [调研情报收集]",
+      "cynefin": "Complicated",
+      "weak": []
+    },
+    {
+      "time": "2026-03-22T02:26:33.507715",
+      "stage": "S1_INTEL",
+      "input": "冷情报：河源市教育局 [调研情报收集]",
+      "cynefin": "Complicated",
+      "weak": []
+    }
+  ],
+  "stage": "S1_INTEL"
+}

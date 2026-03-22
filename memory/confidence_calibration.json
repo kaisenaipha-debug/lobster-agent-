@@ -1,0 +1,14 @@
+{
+  "calibration_log": [
+    {
+      "task_id": "T151652",
+      "description": "搜索并分析 2026 年 AI Agent 领域最重要的一个进展",
+      "declared_confidence": 65,
+      "result_quality": "good",
+      "updated_at": "2026-03-21T21:28:01.359021"
+    }
+  ],
+  "domain_baselines": {},
+  "tracking_started": "2026-03-21",
+  "note": "置信校准追踪：记录每次声明置信度 vs 实际结果，收敛自我认知"
+}

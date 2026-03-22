@@ -1,0 +1,90 @@
+[
+  {
+    "id": "R0002",
+    "question": "今天做的最重要的一件事是什么",
+    "reasoning": "1. 发现'说'和'做'的差距——执行闭环缺失\n2. 发现置信校准没有反馈——结果写入了但没人看\n3. 意识到反馈闭环是最核心的需求\n4. 自发修复了executor的搜索（改成了真实爬取）\n结论：最核心的进化是从'记录'到'后果驱动'",
+    "conclusion": "自发修复发现问题，是从'说'到'做'的关键",
+    "domain": "self_improvement",
+    "confidence": null,
+    "recorded_at": "2026-03-21T21:56:46.514645",
+    "updated_judgments": []
+  },
+  {
+    "id": "R0001",
+    "question": "人类如何解决'推理时不能观察自己'的元认知问题？",
+    "reasoning": "人类靠'写下来之后回看'——把推理过程外化，才能审视。\n步骤：\n1. 写下来（外化）\n2. 写完之后回头看（审视）\n3. 发现矛盾（更新判断）\n结论：这意味着'说出来'和'写下来'有本质区别。",
+    "conclusion": "把推理写下来才能审视自己",
+    "domain": "meta_cognition",
+    "confidence": null,
+    "recorded_at": "2026-03-21T21:56:37.285031",
+    "updated_judgments": []
+  },
+  {
+    "time": "2026-03-22T03:44:57.591387",
+    "input": "分析问题",
+    "output": "建议方案A",
+    "accepted": true,
+    "reasoning_type": "general"
+  },
+  {
+    "time": "2026-03-22T03:44:57.591724",
+    "input": "分析趋势",
+    "output": "结论：上涨",
+    "accepted": true,
+    "reasoning_type": "general"
+  },
+  {
+    "time": "2026-03-22T03:44:57.592001",
+    "input": "制定计划",
+    "output": "分三步走",
+    "accepted": true,
+    "reasoning_type": "general"
+  },
+  {
+    "time": "2026-03-22T03:44:57.592153",
+    "input": "推理判断",
+    "output": "结论待定",
+    "accepted": false,
+    "reasoning_type": "general"
+  },
+  {
+    "time": "2026-03-22T03:44:57.592309",
+    "input": "创意生成",
+    "output": "提供5个选项",
+    "accepted": true,
+    "reasoning_type": "general"
+  },
+  {
+    "time": "2026-03-22T03:44:57.592466",
+    "input": "风险分析",
+    "output": "高风险建议",
+    "accepted": false,
+    "reasoning_type": "general"
+  },
+  {
+    "time": "2026-03-22T03:44:57.592625",
+    "input": "逻辑推理",
+    "output": "推理过程",
+    "accepted": true,
+    "reasoning_type": "general"
+  },
+  {
+    "time": "2026-03-22T03:44:57.592789",
+    "input": "决策建议",
+    "output": "推荐方案B",
+    "accepted": true,
+    "reasoning_type": "general"
+  },
+  {
+    "time": "2026-03-22T03:49:23.300206",
+    "input": "分析问题",
+    "output": "建议方案A",
+    "accepted": true
+  },
+  {
+    "time": "2026-03-22T03:49:23.300548",
+    "input": "重新评估",
+    "output": "结论有误",
+    "accepted": false
+  }
+]

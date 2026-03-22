@@ -1,0 +1,10 @@
+{
+  "version": 1,
+  "skills": {
+    "slack": {
+      "source": "nkchivas/openclaw-skill-slack",
+      "sourceType": "github",
+      "computedHash": "4220dff60cd8d4166b6d70793175644c92233cda127415987a3272ff1b0c51e2"
+    }
+  }
+}

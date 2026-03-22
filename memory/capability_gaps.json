@@ -1,0 +1,83 @@
+[
+  {
+    "time": "2026-03-22T03:44:57.594075",
+    "task": "视频翻译",
+    "missing": "视频音频提取能力",
+    "resolution": "adapted",
+    "resolved": true,
+    "priority": "medium",
+    "notes": ""
+  },
+  {
+    "time": "2026-03-22T03:44:57.594270",
+    "task": "批量文件处理",
+    "missing": "并发文件操作",
+    "resolution": "failed",
+    "resolved": false,
+    "priority": "high",
+    "notes": ""
+  },
+  {
+    "time": "2026-03-22T03:44:57.594413",
+    "task": "跨平台同步",
+    "missing": "多平台API集成",
+    "resolution": "adapted",
+    "resolved": true,
+    "priority": "medium",
+    "notes": ""
+  },
+  {
+    "time": "2026-03-22T03:44:57.594551",
+    "task": "视频翻译",
+    "missing": "视频音频提取能力",
+    "resolution": "adapted",
+    "resolved": true,
+    "priority": "medium",
+    "notes": ""
+  },
+  {
+    "time": "2026-03-22T03:44:57.594692",
+    "task": "实时协作",
+    "missing": "多人协同编辑",
+    "resolution": "skipped",
+    "resolved": false,
+    "priority": "low",
+    "notes": ""
+  },
+  {
+    "time": "2026-03-22T03:44:57.594830",
+    "task": "批量文件处理",
+    "missing": "并发文件操作",
+    "resolution": "created",
+    "resolved": true,
+    "priority": "high",
+    "notes": ""
+  },
+  {
+    "time": "2026-03-22T04:07:32.447456",
+    "task": "能力自检发现",
+    "missing": "任务规划能力不足",
+    "resolution": "discovered",
+    "resolved": false,
+    "priority": "high",
+    "notes": ""
+  },
+  {
+    "time": "2026-03-22T04:07:32.447852",
+    "task": "能力自检发现",
+    "missing": "自我进化能力瓶颈",
+    "resolution": "discovered",
+    "resolved": false,
+    "priority": "high",
+    "notes": ""
+  },
+  {
+    "time": "2026-03-22T04:07:32.448074",
+    "task": "能力自检发现",
+    "missing": "子Agent编排能力弱",
+    "resolution": "discovered",
+    "resolved": false,
+    "priority": "high",
+    "notes": ""
+  }
+]

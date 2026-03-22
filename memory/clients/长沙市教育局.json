@@ -1,0 +1,13 @@
+{
+  "name": "长沙市教育局",
+  "stage": "S1_INTEL",
+  "log": [
+    {
+      "time": "2026-03-22T00:34:58.438648",
+      "stage": "S1_INTEL",
+      "input": "收集长沙市教育局情报 [调研情报收集]",
+      "cynefin": "Complicated",
+      "weak": []
+    }
+  ]
+}

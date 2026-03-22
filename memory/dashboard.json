@@ -1,0 +1,196 @@
+{
+  "generated_at": "2026-03-22T03:55:36.166084",
+  "data_source": "真实执行记录",
+  "version": "2.0",
+  "overall_score": {
+    "value": 83,
+    "display": 83,
+    "has_data": true,
+    "data_points": 3
+  },
+  "smooth_score": {
+    "value": 92,
+    "display": "92%",
+    "has_data": true,
+    "description": "任务完成未打断用户的比率"
+  },
+  "organs": {
+    "眼睛": {
+      "score": 86,
+      "has_data": true,
+      "display": 86,
+      "emoji": "👁️"
+    },
+    "耳朵": {
+      "score": null,
+      "has_data": false,
+      "display": "未检测",
+      "emoji": "👂"
+    },
+    "大脑": {
+      "score": 70,
+      "has_data": true,
+      "display": 70,
+      "emoji": "🧠",
+      "source": "推理采纳率"
+    },
+    "记忆": {
+      "score": null,
+      "has_data": false,
+      "display": "未检测",
+      "emoji": "💾",
+      "source": "mem0ai检索命中率"
+    },
+    "嘴巴": {
+      "score": null,
+      "has_data": false,
+      "display": "未检测",
+      "emoji": "🗣️"
+    },
+    "工具": {
+      "score": null,
+      "has_data": false,
+      "display": "未检测",
+      "emoji": "🔧"
+    },
+    "手脚": {
+      "score": null,
+      "has_data": false,
+      "display": "未检测",
+      "emoji": "🦶"
+    }
+  },
+  "organ_summary": {
+    "total": 7,
+    "with_data": 2,
+    "without_data": 5,
+    "best": {
+      "organ": "眼睛",
+      "score": 86,
+      "emoji": "👁️"
+    },
+    "weakest": {
+      "organ": "大脑",
+      "score": 70,
+      "emoji": "🧠"
+    }
+  },
+  "task_stats": {
+    "total_tasks": 25,
+    "today_tasks": 25,
+    "total_organs": 7,
+    "has_data": true,
+    "data_quality": "积累中",
+    "organs": {
+      "眼睛": {
+        "total": 7,
+        "success": 6,
+        "interrupted": 1
+      },
+      "耳朵": {
+        "total": 3,
+        "success": 3,
+        "interrupted": 0
+      },
+      "大脑": {
+        "total": 5,
+        "success": 4,
+        "interrupted": 1
+      },
+      "记忆": {
+        "total": 3,
+        "success": 3,
+        "interrupted": 0
+      },
+      "工具": {
+        "total": 3,
+        "success": 3,
+        "interrupted": 0
+      },
+      "嘴巴": {
+        "total": 2,
+        "success": 2,
+        "interrupted": 0
+      },
+      "手脚": {
+        "total": 2,
+        "success": 2,
+        "interrupted": 0
+      }
+    }
+  },
+  "capability_gaps": {
+    "pending": [
+      {
+        "name": "并发文件操作",
+        "count": 1,
+        "priority": "高",
+        "priority_raw": "high",
+        "last_seen": "2026-03-22T03:44:57.594270",
+        "latest_task": "批量文件处理"
+      },
+      {
+        "name": "多人协同编辑",
+        "count": 1,
+        "priority": "低",
+        "priority_raw": "low",
+        "last_seen": "2026-03-22T03:44:57.594692",
+        "latest_task": "实时协作"
+      }
+    ],
+    "stats": {
+      "has_data": true,
+      "total_gaps": 6,
+      "resolved": 4,
+      "unresolved": 2,
+      "resolution_rate": 66.7,
+      "data_quality": "积累中",
+      "resolution_distribution": {
+        "改造现有工具": 3,
+        "未解决": 1,
+        "跳过/绕过": 1,
+        "自己创建": 1
+      },
+      "pending": [
+        {
+          "name": "并发文件操作",
+          "count": 1,
+          "priority": "高",
+          "priority_raw": "high",
+          "last_seen": "2026-03-22T03:44:57.594270",
+          "latest_task": "批量文件处理"
+        },
+        {
+          "name": "多人协同编辑",
+          "count": 1,
+          "priority": "低",
+          "priority_raw": "low",
+          "last_seen": "2026-03-22T03:44:57.594692",
+          "latest_task": "实时协作"
+        }
+      ],
+      "recent_days": [
+        {
+          "date": "2026-03-22",
+          "total": 6,
+          "resolved": 4
+        }
+      ]
+    }
+  },
+  "data_quality": {
+    "organ_data_points": 2,
+    "total_data_points": 3,
+    "rating": "良好"
+  },
+  "radar_scores": {
+    "perception": 8.6,
+    "cognition": null,
+    "brain": 7.0,
+    "memory": null,
+    "tools": null,
+    "proactive": null,
+    "output": null,
+    "platform": null
+  }
+}

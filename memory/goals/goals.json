@@ -1,0 +1,186 @@
+{
+  "goals": {
+    "G001": {
+      "id": "G001",
+      "name": "心跳主动化",
+      "description": "",
+      "status": "completed",
+      "priority": "P1",
+      "created_at": "2026-03-21T11:45:27.604118",
+      "updated_at": "2026-03-21T11:45:35.617420",
+      "completed_at": "2026-03-21T11:45:35.617410",
+      "milestones": [
+        {
+          "date": "2026-03-21",
+          "text": "目标创建：心跳主动化",
+          "type": "created"
+        },
+        {
+          "date": "2026-03-21",
+          "text": "心跳主动化引擎完成",
+          "type": "update"
+        }
+      ],
+      "next_step": "接入wecom待办",
+      "blockers": [],
+      "tags": []
+    },
+    "G002": {
+      "id": "G002",
+      "name": "记忆闭环",
+      "description": "",
+      "status": "completed",
+      "priority": "P1",
+      "created_at": "2026-03-21T11:45:27.635107",
+      "updated_at": "2026-03-21T11:45:35.647440",
+      "completed_at": "2026-03-21T11:45:35.647429",
+      "milestones": [
+        {
+          "date": "2026-03-21",
+          "text": "目标创建：记忆闭环",
+          "type": "created"
+        },
+        {
+          "date": "2026-03-21",
+          "text": "mem0+Groq记忆闭环完成",
+          "type": "update"
+        }
+      ],
+      "next_step": "Groq接入mem0",
+      "blockers": [],
+      "tags": []
+    },
+    "G003": {
+      "id": "G003",
+      "name": "目标追踪系统",
+      "description": "",
+      "status": "completed",
+      "priority": "P1",
+      "created_at": "2026-03-21T11:45:27.662930",
+      "updated_at": "2026-03-21T11:46:54.853838",
+      "completed_at": "2026-03-21T11:46:54.853827",
+      "milestones": [
+        {
+          "date": "2026-03-21",
+          "text": "目标创建：目标追踪系统",
+          "type": "created"
+        },
+        {
+          "date": "2026-03-21",
+          "text": "目标追踪系统完成",
+          "type": "update"
+        }
+      ],
+      "next_step": "接HEARTBEAT",
+      "blockers": [],
+      "tags": []
+    },
+    "G004": {
+      "id": "G004",
+      "name": "Groq接入",
+      "description": "",
+      "status": "completed",
+      "priority": "P1",
+      "created_at": "2026-03-21T11:45:27.690502",
+      "updated_at": "2026-03-21T11:45:35.674927",
+      "completed_at": "2026-03-21T11:45:35.674918",
+      "milestones": [
+        {
+          "date": "2026-03-21",
+          "text": "目标创建：Groq接入",
+          "type": "created"
+        },
+        {
+          "date": "2026-03-21",
+          "text": "Groq API接入完成，llama-3.1-8b-instant可用",
+          "type": "update"
+        }
+      ],
+      "next_step": "确定执行计划",
+      "blockers": [],
+      "tags": []
+    },
+    "G005": {
+      "id": "G005",
+      "name": "Slack集成",
+      "description": "",
+      "status": "abandoned",
+      "priority": "P2",
+      "created_at": "2026-03-21T11:45:27.717628",
+      "updated_at": "2026-03-21T14:06:58.079762",
+      "completed_at": null,
+      "milestones": [
+        {
+          "date": "2026-03-21",
+          "text": "目标创建：Slack集成",
+          "type": "created"
+        },
+        {
+          "date": "2026-03-21",
+          "text": "Slack Bot Token已配置，等待加入频道",
+          "type": "update"
+        },
+        {
+          "date": "2026-03-21",
+          "text": "非必需目标，Slack Token 问题阻塞，关闭",
+          "type": "update"
+        }
+      ],
+      "next_step": "在Slack中执行 /invite @demo_app",
+      "blockers": [
+        "Token格式错误"
+      ],
+      "tags": []
+    },
+    "G006": {
+      "id": "G006",
+      "name": "企业微信配置",
+      "description": "",
+      "status": "active",
+      "priority": "P3",
+      "created_at": "2026-03-21T11:45:27.745005",
+      "updated_at": "2026-03-21T11:45:27.745010",
+      "completed_at": null,
+      "milestones": [
+        {
+          "date": "2026-03-21",
+          "text": "目标创建：企业微信配置",
+          "type": "created"
+        }
+      ],
+      "next_step": "确定执行计划",
+      "blockers": [
+        "缺wsUrl/guid/userId"
+      ],
+      "tags": []
+    },
+    "G007": {
+      "id": "G007",
+      "name": "自主AgentLoop",
+      "description": "",
+      "status": "completed",
+      "priority": "P2",
+      "created_at": "2026-03-21T11:45:27.772232",
+      "updated_at": "2026-03-21T14:10:55.053962",
+      "completed_at": "2026-03-21T14:10:55.053950",
+      "milestones": [
+        {
+          "date": "2026-03-21",
+          "text": "目标创建：自主AgentLoop",
+          "type": "created"
+        },
+        {
+          "date": "2026-03-21",
+          "text": "Agent Loop v1.0 完成，支持目标分解、工具识别、实际执行、状态记录",
+          "type": "update"
+        }
+      ],
+      "next_step": "确定执行计划",
+      "blockers": [
+        "缺DASHSCOPE_API_KEY"
+      ],
+      "tags": []
+    }
+  },
+  "next_id": 1
+}

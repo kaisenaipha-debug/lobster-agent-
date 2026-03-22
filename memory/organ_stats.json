@@ -1,0 +1,37 @@
+{
+  "眼睛": {
+    "total": 7,
+    "success": 6,
+    "interrupted": 1
+  },
+  "耳朵": {
+    "total": 3,
+    "success": 3,
+    "interrupted": 0
+  },
+  "大脑": {
+    "total": 5,
+    "success": 4,
+    "interrupted": 1
+  },
+  "记忆": {
+    "total": 3,
+    "success": 3,
+    "interrupted": 0
+  },
+  "工具": {
+    "total": 3,
+    "success": 3,
+    "interrupted": 0
+  },
+  "嘴巴": {
+    "total": 2,
+    "success": 2,
+    "interrupted": 0
+  },
+  "手脚": {
+    "total": 2,
+    "success": 2,
+    "interrupted": 0
+  }
+}

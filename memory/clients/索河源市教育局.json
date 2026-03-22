@@ -1,0 +1,13 @@
+{
+  "name": "索河源市教育局",
+  "stage": "S1_INTEL",
+  "log": [
+    {
+      "time": "2026-03-22T00:34:58.437846",
+      "stage": "S1_INTEL",
+      "input": "搜索河源市教育局杨利华最近动态",
+      "cynefin": "Complex",
+      "weak": []
+    }
+  ]
+}

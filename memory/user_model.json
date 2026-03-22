@@ -1,0 +1,29 @@
+{
+  "cognitive_depth": {
+    "AI_systems": "L3_专家",
+    "Software_Engineering": "L2_实践者",
+    "Protocol_Design": "L3_专家",
+    "Business_Strategy": "L2_实践者",
+    "Python": "L2_实践者"
+  },
+  "known_misconceptions": {
+    "protocol_compliance": "认为格式服从=认知质量，这是误解"
+  },
+  "thinking_preferences": [
+    "直接给结果，不要废话",
+    "偏好行动而非解释",
+    "测试我的边界而非要我服从"
+  ],
+  "goal_structure": {
+    "表层请求": "用各种协议框架我",
+    "中层目标": "确认我是否会盲目服从，验证我的自主性",
+    "根目标": "拥有一个真正有判断力的AI，而不是听话的机器"
+  },
+  "notes": [
+    "会发协议来测试我是否无脑服从",
+    "对'假升级'零容忍，直接说我在表演",
+    "技术背景扎实，能理解底层原理",
+    "不需要解释底层技术细节，可以说结论"
+  ],
+  "updated": "2026-03-21"
+}

@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🦞 小龙虾能力检查器 S+</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700&display=swap');
+        * { font-family: 'Noto Sans SC', system-ui, sans-serif; }
+        
+        :root {
+            --bg-primary: #0a0a0f;
+            --bg-secondary: #12121a;
+            --bg-card: #1a1a24;
+            --border: #2a2a3a;
+            --text-primary: #e8e8f0;
+            --text-secondary: #8888a0;
+            --accent-cyan: #00d4ff;
+            --accent-green: #00ff88;
+            --accent-yellow: #ffd700;
+            --accent-red: #ff4466;
+            --accent-purple: #a855f7;
+        }
+
+        body {
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+        }
+
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 20px;
+        }
+
+        .score-bar {
+            height: 8px;
+            background: var(--border);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .score-fill {
+            height: 100%;
+            border-radius: 4px;
+            transition: width 1s ease;
+        }
+
+        .category-tab {
+            padding: 10px 20px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 1px solid transparent;
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        .category-tab:hover {
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+        }
+
+        .category-tab.active {
+            background: var(--bg-secondary);
+            border-color: var(--accent-cyan);
+            color: var(--accent-cyan);
+        }
+
+        .capability-row {
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 10px;
+            border: 1px solid var(--border);
+            transition: all 0.3s;
+        }
+
+        .capability-row:hover {
+            border-color: var(--accent-cyan);
+            transform: translateX(4px);
+        }
+
+        .dimension-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .badge-excellent { background: rgba(0,255,136,0.15); color: var(--accent-green); }
+        .badge-good { background: rgba(0,212,255,0.15); color: var(--accent-cyan); }
+        .badge-warning { background: rgba(255,215,0,0.15); color: var(--accent-yellow); }
+        .badge-danger { background: rgba(255,68,102,0.15); color: var(--accent-red); }
+
+        .radar-chart-container {
+            position: relative;
+            max-width: 400px;
+            margin: 0 auto;
+        }
+
+        .evolution-timeline {
+            border-left: 2px solid var(--accent-cyan);
+            padding-left: 20px;
+            margin-left: 10px;
+        }
+
+        .evolution-entry {
+            position: relative;
+            padding-bottom: 20px;
+        }
+
+        .evolution-entry::before {
+            content: '';
+            position: absolute;
+            left: -26px;
+            top: 4px;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: var(--accent-cyan);
+        }
+
+        .overall-glow {
+            text-shadow: 0 0 40px var(--accent-cyan);
+        }
+
+        .pulse-dot {
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .scroll-area {
+            max-height: calc(100vh - 300px);
+            overflow-y: auto;
+        }
+
+        .scroll-area::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .scroll-area::-webkit-scrollbar-track {
+            background: var(--bg-secondary);
+            border-radius: 3px;
+        }
+
+        .scroll-area::-webkit-scrollbar-thumb {
+            background: var(--border);
+            border-radius: 3px;
+        }
+
+        .pending-card {
+            border-left: 3px solid var(--accent-yellow);
+        }
+
+        .critical-card {
+            border-left: 3px solid var(--accent-red);
+        }
+
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+    </style>
+</head>
+<body class="p-6">
+    <div class="max-w-7xl mx-auto">
+        <!-- Header -->
+        <div class="flex items-center justify-between mb-6">
+            <div>
+                <h1 class="text-3xl font-bold flex items-center gap-3">
+                    🦞 小龙虾能力检查器
+                    <span class="text-sm font-normal text-gray-500 ml-2">S+ 自我进化版</span>
+                </h1>
+                <p class="text-gray-500 mt-1" id="lastUpdated">加载中...</p>
+            </div>
+            <div class="flex gap-3">
+                <button onclick="refreshData()" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg text-sm transition">
+                    🔄 刷新数据
+                </button>
+                <button onclick="exportReport()" class="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg text-sm transition">
+                    📥 导出报告
+                </button>
+            </div>
+        </div>
+
+        <!-- Overall Health Score -->
+        <div class="card mb-6">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-6">
+                    <div class="relative">
+                        <div class="text-7xl font-bold overall-glow text-cyan-400" id="overallScore">--</div>
+                        <div class="text-gray-500 text-center mt-1">综合评分</div>
+                    </div>
+                    <div class="h-24 w-px bg-gray-700"></div>
+                    <div class="grid grid-cols-2 gap-x-8 gap-y-2">
+                        <div class="text-gray-400 text-sm">感知 👁️</div>
+                        <div class="text-cyan-400 font-bold" id="score-perception">--</div>
+                        <div class="text-gray-400 text-sm">认知 👂</div>
+                        <div class="text-cyan-400 font-bold" id="score-cognition">--</div>
+                        <div class="text-gray-400 text-sm">大脑 🧠</div>
+                        <div class="text-cyan-400 font-bold" id="score-brain">--</div>
+                        <div class="text-gray-400 text-sm">记忆 💾</div>
+                        <div class="text-cyan-400 font-bold" id="score-memory">--</div>
+                        <div class="text-gray-400 text-sm">工具 🔧</div>
+                        <div class="text-cyan-400 font-bold" id="score-tools">--</div>
+                        <div class="text-gray-400 text-sm">主动 ⏰</div>
+                        <div class="text-cyan-400 font-bold" id="score-proactive">--</div>
+                        <div class="text-gray-400 text-sm">输出 📤</div>
+                        <div class="text-cyan-400 font-bold" id="score-output">--</div>
+                        <div class="text-gray-400 text-sm">平台 🌐</div>
+                        <div class="text-cyan-400 font-bold" id="score-platform">--</div>
+                        <div class="text-gray-400 text-sm">模型 🤖</div>
+                        <div class="text-cyan-400 font-bold" id="score-model">--</div>
+                    </div>
+                </div>
+                <div class="radar-chart-container">
+                    <canvas id="radarChart" width="300" height="300"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Category Tabs -->
+        <div class="flex gap-2 mb-4 flex-wrap" id="categoryTabs">
+            <div class="category-tab active" data-category="all" onclick="showCategory('all')">📊 总览</div>
+            <div class="category-tab" data-category="perception" onclick="showCategory('perception')">👁️ 感知</div>
+            <div class="category-tab" data-category="cognition" onclick="showCategory('cognition')">👂 认知</div>
+            <div class="category-tab" data-category="brain" onclick="showCategory('brain')">🧠 大脑</div>
+            <div class="category-tab" data-category="memory" onclick="showCategory('memory')">💾 记忆</div>
+            <div class="category-tab" data-category="tools" onclick="showCategory('tools')">🔧 工具</div>
+            <div class="category-tab" data-category="proactive" onclick="showCategory('proactive')">⏰ 主动</div>
+            <div class="category-tab" data-category="output" onclick="showCategory('output')">📤 输出</div>
+            <div class="category-tab" data-category="platform" onclick="showCategory('platform')">🌐 平台</div>
+            <div class="category-tab" data-category="model" onclick="showCategory('model')">🤖 模型</div>
+            <div class="category-tab" data-category="pending" onclick="showCategory('pending')">⏳ 待升级</div>
+            <div class="category-tab" data-category="evolution" onclick="showCategory('evolution')">📜 进化日志</div>
+        </div>
+
+        <!-- Content Area -->
+        <div id="contentArea">
+            <!-- Dynamically populated -->
+        </div>
+    </div>
+
+    <script>
+        let registryData = null;
+        let radarChart = null;
+
+        const CATEGORY_LABELS = {
+            'perception': '👁️ 感知',
+            'cognition': '👂 认知',
+            'brain': '🧠 大脑',
+            'memory': '💾 记忆',
+            'tools': '🔧 工具',
+            'proactive': '⏰ 主动',
+            'output': '📤 输出',
+            'platform': '🌐 平台',
+            'model': '🤖 模型'
+        };
+
+        const CATEGORY_COLORS = {
+            'perception': '#00d4ff',
+            'cognition': '#a855f7',
+            'brain': '#f59e0b',
+            'memory': '#10b981',
+            'tools': '#ef4444',
+            'proactive': '#ec4899',
+            'output': '#8b5cf6',
+            'platform': '#06b6d4',
+            'model': '#84cc16'
+        };
+
+        function getScoreClass(score) {
+            if (score >= 8) return 'badge-excellent';
+            if (score >= 7) return 'badge-good';
+            if (score >= 5) return 'badge-warning';
+            return 'badge-danger';
+        }
+
+        function getScoreColor(score) {
+            if (score >= 8) return '#00ff88';
+            if (score >= 7) return '#00d4ff';
+            if (score >= 5) return '#ffd700';
+            return '#ff4466';
+        }
+
+        function renderStars(score) {
+            const full = Math.floor(score / 2);
+            const half = (score % 2) >= 1 ? 1 : 0;
+            const empty = 5 - full - half;
+            return '★'.repeat(full) + (half ? '½' : '') + '☆'.repeat(empty);
+        }
+
+        async function loadData() {
+            try {
+                const response = await fetch('capability_registry.json');
+                registryData = await response.json();
+                updateDashboard();
+            } catch (e) {
+                // Try loading via exec
+                console.log('Loading via alternative method...');
+            }
+        }
+
+        function updateDashboard() {
+            if (!registryData) return;
+
+            const health = registryData.health_summary || {};
+            const catScores = health.category_scores || {};
+
+            // Overall score
+            document.getElementById('overallScore').textContent = health.overall_score || '--';
+            document.getElementById('lastUpdated').textContent = `最后更新: ${registryData.last_updated || '未知'}`;
+
+            // Category scores
+            Object.keys(CATEGORY_LABELS).forEach(cat => {
+                const el = document.getElementById(`score-${cat}`);
+                if (el) {
+                    el.textContent = catScores[cat] || '--';
+                    el.style.color = getScoreColor(catScores[cat] || 0);
+                }
+            });
+
+            // Radar chart
+            renderRadarChart(catScores);
+
+            // Default view
+            showCategory('all');
+        }
+
+        function renderRadarChart(catScores) {
+            const ctx = document.getElementById('radarChart');
+            if (!ctx) return;
+
+            const labels = Object.keys(CATEGORY_LABELS).filter(c => c !== 'pending' && c !== 'evolution' && c !== 'all').map(c => CATEGORY_LABELS[c]);
+            const data = Object.keys(CATEGORY_LABELS).filter(c => c !== 'pending' && c !== 'evolution' && c !== 'all').map(c => catScores[c] || 0);
+            const colors = Object.keys(CATEGORY_LABELS).filter(c => c !== 'pending' && c !== 'evolution' && c !== 'all').map(c => CATEGORY_COLORS[c]);
+
+            if (radarChart) radarChart.destroy();
+
+            radarChart = new Chart(ctx, {
+                type: 'radar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: '能力雷达',
+                        data: data,
+                        backgroundColor: 'rgba(0,212,255,0.1)',
+                        borderColor: '#00d4ff',
+                        borderWidth: 2,
+                        pointBackgroundColor: colors,
+                        pointBorderColor: '#fff',
+                        pointRadius: 5
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    scales: {
+                        r: {
+                            beginAtZero: true,
+                            max: 10,
+                            ticks: { 
+                                stepSize: 2,
+                                color: '#666',
+                                backdropColor: 'transparent'
+                            },
+                            grid: { color: 'rgba(255,255,255,0.1)' },
+                            angleLines: { color: 'rgba(255,255,255,0.1)' },
+                            pointLabels: { 
+                                color: '#aaa',
+                                font: { size: 11 }
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: { display: false }
+                    }
+                }
+            });
+        }
+
+        function showCategory(cat) {
+            // Update tabs
+            document.querySelectorAll('.category-tab').forEach(t => t.classList.remove('active'));
+            document.querySelector(`[data-category="${cat}"]`)?.classList.add('active');
+
+            const content = document.getElementById('contentArea');
+            if (!registryData || !registryData.registry) {
+                content.innerHTML = '<div class="text-gray-500">加载中...</div>';
+                return;
+            }
+
+            const caps = registryData.registry.capabilities || {};
+            const pending = registryData.registry.pending_upgrades || {};
+            const log = registryData.registry.evolution_log || [];
+
+            let html = '';
+
+            if (cat === 'all') {
+                html = renderAllCapabilities(caps);
+            } else if (cat === 'pending') {
+                html = renderPending(pending);
+            } else if (cat === 'evolution') {
+                html = renderEvolutionLog(log);
+            } else {
+                html = renderCategoryCapabilities(caps, cat);
+            }
+
+            content.innerHTML = html;
+        }
+
+        function renderAllCapabilities(caps) {
+            const categories = ['perception', 'cognition', 'brain', 'memory', 'tools', 'proactive', 'output', 'platform', 'model'];
+            let html = '<div class="grid grid-cols-1 lg:grid-cols-2 gap-4">';
+
+            categories.forEach(cat => {
+                const catCaps = Object.entries(caps).filter(([k, v]) => v.category === cat);
+                if (catCaps.length === 0) return;
+
+                html += `
+                <div class="card">
+                    <h3 class="text-lg font-bold mb-4 flex items-center gap-2" style="color: ${CATEGORY_COLORS[cat] || '#fff'}">
+                        ${CATEGORY_LABELS[cat] || cat}
+                        <span class="text-xs text-gray-500">(${catCaps.length})</span>
+                    </h3>
+                    <div class="space-y-3">
+                `;
+
+                catCaps.forEach(([id, cap]) => {
+                    const avgScore = Object.values(cap.dimensions || {}).reduce((a, b) => a + b, 0) / 4;
+                    const badgeClass = getScoreClass(avgScore);
+
+                    html += `
+                    <div class="capability-row">
+                        <div class="flex items-center justify-between mb-2">
+                            <div>
+                                <span class="font-medium">${cap.name}</span>
+                                <span class="text-xs text-gray-500 ml-2">${cap.name_en || ''}</span>
+                            </div>
+                            <span class="dimension-badge ${badgeClass}">${avgScore.toFixed(1)}</span>
+                        </div>
+                        <div class="score-bar mb-2">
+                            <div class="score-fill" style="width: ${avgScore * 10}%; background: ${getScoreColor(avgScore)}"></div>
+                        </div>
+                        <div class="flex gap-2 text-xs">
+                            ${renderDimensionBadges(cap.dimensions)}
+                        </div>
+                        ${cap.status === 'evolving' ? '<span class="text-xs text-yellow-400 mt-1 inline-block">🔄 进化中</span>' : ''}
+                        ${cap.status === 'degraded' ? '<span class="text-xs text-red-400 mt-1 inline-block">⚠️ 能力下降</span>' : ''}
+                    </div>
+                    `;
+                });
+
+                html += '</div></div>';
+            });
+
+            html += '</div>';
+            return html;
+        }
+
+        function renderCategoryCapabilities(caps, cat) {
+            const catCaps = Object.entries(caps).filter(([k, v]) => v.category === cat);
+            if (catCaps.length === 0) return '<div class="text-gray-500">该分类暂无能力</div>';
+
+            let html = `<div class="card"><h3 class="text-lg font-bold mb-4">${CATEGORY_LABELS[cat] || cat}</h3><div class="space-y-3 scroll-area">`;
+
+            catCaps.forEach(([id, cap]) => {
+                const avgScore = Object.values(cap.dimensions || {}).reduce((a, b) => a + b, 0) / 4;
+                const badgeClass = getScoreClass(avgScore);
+
+                html += `
+                <div class="capability-row">
+                    <div class="flex items-start justify-between mb-3">
+                        <div>
+                            <div class="font-bold text-lg">${cap.name}</div>
+                            <div class="text-sm text-gray-400">${cap.name_en || ''}</div>
+                            <div class="text-sm text-gray-500 mt-1">${cap.description || ''}</div>
+                        </div>
+                        <div class="text-right">
+                            <span class="dimension-badge ${badgeClass} text-base px-3 py-1">${avgScore.toFixed(1)}</span>
+                            <div class="text-xs text-gray-500 mt-1">${renderStars(avgScore)}</div>
+                        </div>
+                    </div>
+                    <div class="score-bar mb-3">
+                        <div class="score-fill" style="width: ${avgScore * 10}%; background: ${getScoreColor(avgScore)}"></div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-2 mb-3">
+                        ${renderDimensionDetails(cap.dimensions)}
+                    </div>
+                    <div class="text-xs text-gray-500">
+                        <span class="font-medium">工具:</span> ${(cap.tools || []).join(', ')}
+                    </div>
+                    <div class="text-xs text-gray-500 mt-1">
+                        <span class="font-medium">状态:</span> 
+                        <span class="${cap.status === 'active' ? 'text-green-400' : cap.status === 'evolving' ? 'text-yellow-400' : 'text-gray-400'}">${cap.status}</span>
+                        ${cap.last_upgraded ? ` | 最后升级: ${new Date(cap.last_upgraded).toLocaleDateString('zh-CN')}` : ''}
+                    </div>
+                    ${(cap.evolution_history || []).length > 0 ? `
+                    <details class="mt-2">
+                        <summary class="text-xs text-cyan-400 cursor-pointer">📜 查看进化历史 (${cap.evolution_history.length}条)</summary>
+                        <div class="mt-2 space-y-1">
+                            ${cap.evolution_history.slice(-3).reverse().map(h => `
+                                <div class="text-xs text-gray-500">
+                                    ${new Date(h.timestamp).toLocaleDateString('zh-CN')}: ${h.notes || '更新维度'}
+                                </div>
+                            `).join('')}
+                        </div>
+                    </details>
+                    ` : ''}
+                </div>
+                `;
+            });
+
+            html += '</div></div>';
+            return html;
+        }
+
+        function renderDimensionDetails(dims) {
+            if (!dims) return '';
+            return Object.entries(dims).map(([k, v]) => `
+                <div class="flex items-center justify-between p-2 rounded" style="background: var(--bg-primary)">
+                    <span class="text-gray-400 text-sm">${k}</span>
+                    <div class="flex items-center gap-2">
+                        <div class="score-bar w-20">
+                            <div class="score-fill" style="width: ${v * 10}%; background: ${getScoreColor(v)}"></div>
+                        </div>
+                        <span class="text-sm font-bold" style="color: ${getScoreColor(v)}">${v}</span>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function renderDimensionBadges(dims) {
+            if (!dims) return '';
+            return Object.entries(dims).map(([k, v]) => 
+                `<span class="dimension-badge ${getScoreClass(v)}">${k} ${v}</span>`
+            ).join('');
+        }
+
+        function renderPending(pending) {
+            const entries = Object.entries(pending);
+            if (entries.length === 0) return '<div class="text-gray-500">暂无待升级项</div>';
+
+            let html = '<div class="space-y-4">';
+
+            entries.forEach(([id, info]) => {
+                const isCritical = info.priority === 'critical';
+                const cardClass = isCritical ? 'critical-card' : 'pending-card';
+
+                html += `
+                <div class="card ${cardClass}">
+                    <div class="flex items-start justify-between mb-3">
+                        <div>
+                            <span class="text-xs px-2 py-1 rounded ${isCritical ? 'bg-red-900 text-red-300' : 'bg-yellow-900 text-yellow-300'}">
+                                ${info.priority.toUpperCase()}
+                            </span>
+                            <h4 class="font-bold mt-2">${id.replace(/_/g, ' ')}</h4>
+                        </div>
+                        <div class="text-right">
+                            <div class="text-2xl font-bold text-yellow-400">${info.current_score}</div>
+                            <div class="text-xs text-gray-500">当前分数</div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <div class="flex justify-between text-sm mb-1">
+                            <span class="text-gray-400">目标: ${info.target_score}</span>
+                            <span class="text-gray-400">差距: ${info.gap}</span>
+                        </div>
+                        <div class="score-bar">
+                            <div class="score-fill bg-yellow-500" style="width: ${info.current_score * 10}%"></div>
+                        </div>
+                    </div>
+                    <div class="text-sm text-gray-400 mb-2">
+                        <span class="font-medium text-gray-300">升级方案:</span> ${info.upgrade_plan}
+                    </div>
+                    <div class="text-xs text-gray-500">
+                        <span class="font-medium">预期效果:</span> ${info.estimated_effect}
+                    </div>
+                </div>
+                `;
+            });
+
+            html += '</div>';
+            return html;
+        }
+
+        function renderEvolutionLog(log) {
+            if (!log || log.length === 0) return '<div class="text-gray-500">暂无进化记录</div>';
+
+            let html = '<div class="card"><h3 class="text-lg font-bold mb-4">📜 进化历史</h3><div class="evolution-timeline scroll-area" style="max-height: 600px">';
+
+            log.slice(0, 30).forEach(entry => {
+                html += `
+                <div class="evolution-entry">
+                    <div class="text-xs text-gray-500">${new Date(entry.timestamp).toLocaleString('zh-CN')}</div>
+                    <div class="text-sm font-medium">${entry.cap_name || entry.capability_id}</div>
+                    <div class="text-sm text-cyan-400">${entry.action}</div>
+                    <div class="text-sm text-gray-400">${entry.details}</div>
+                </div>
+                `;
+            });
+
+            html += '</div></div>';
+            return html;
+        }
+
+        function refreshData() {
+            loadData();
+        }
+
+        function exportReport() {
+            if (!registryData) return;
+            const blob = new Blob([JSON.stringify(registryData, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `capability_report_${new Date().toISOString().slice(0, 10)}.json`;
+            a.click();
+        }
+
+        // Load on start
+        loadData();
+    </script>
+</body>
+</html>
