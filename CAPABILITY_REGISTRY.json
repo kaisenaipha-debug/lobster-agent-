@@ -1,0 +1,111 @@
+{
+  "version": "2.0",
+  "lastUpdated": "2026-03-22T05:58:00-07:00",
+  "agent": "小龙虾 / Lobster Agent 🦞",
+  "status": "active",
+  "summary": "政府B2G销售情报Agent，顶级爬虫能力，可访问任意中国网站",
+
+  "gov-sales-pipeline": {
+    "description": "政府B2G销售全流程编排器 + 情报专家 + S+级爬虫",
+    "status": "active",
+    "entry": "/Users/tz/.agents/skills/gov-sales-pipeline/SKILL.md",
+    "metadata": {
+      "intelligence_expert": true,
+      "捆绑skill": "intelligence-gather",
+      "sub_skills": ["intelligence-gather", "gov-intel", "meeting-debrief", "client-stage-tracker", "weak-signal-monitor"]
+    },
+    "sub_skills": [
+      {"name": "intelligence-gather",  "role": "情报收集（公司/单位背景调查）",    "entry": "/Users/tz/.agents/skills/intelligence-gather/SKILL.md",         "status": "✅ 已注册"},
+      {"name": "gov-intel",            "role": "政府冷情报（五步搜索）",            "entry": "/Users/tz/.agents/skills/gov-intel/references/gov-intel.md",   "status": "✅ 已注册"},
+      {"name": "meeting-debrief",       "role": "见客复盘（对话分析+阶段推进）",     "entry": "/Users/tz/.agents/skills/meeting-debrief/SKILL.md",            "status": "✅ 已注册"},
+      {"name": "client-stage-tracker",  "role": "阶段追踪（S0-S5+48h下一步）",      "entry": "/Users/tz/.agents/skills/client-stage-tracker/SKILL.md",       "status": "✅ 已注册"},
+      {"name": "weak-signal-monitor",   "role": "弱信号监控（每日cron+触发预警）",   "entry": "/Users/tz/.agents/skills/weak-signal-monitor/SKILL.md",        "status": "✅ 已注册"}
+    ]
+  },
+
+  "smart-search": {
+    "description": "S+级情报搜索 v2.1（9通道并行 + 三层爬虫引擎）",
+    "version": "2.1",
+    "status": "✅ active",
+    "entry": "/Users/tz/.agents/skills/smart-search/SKILL.md",
+    "serper_key": "e60b55e1eac362203615c503b9d17d544e28e22e",
+    "serper_status": "✅ 已配置（2500次/月）",
+    "channels": {
+      "Layer1_HTTP":        ["sogou_weixin_article", "sogou_weixin_account", "sogou_web", "ccgp", "bosszhipin", "liepin"],
+      "Layer2_Browser":    ["gov_cn", "ccgp_js", "zhipin_js", "liepin_js"],
+      "Layer3_Crawl4AI":   ["crawl4ai_llm_analyze", "crawl_full_text"]
+    },
+    "search_channels": [
+      {"id": "weixin_article",   "name": "搜狗微信文章",   "method": "HTTP",        "star": 5},
+      {"id": "weixin_account",   "name": "搜狗微信公众号",  "method": "HTTP",        "star": 5},
+      {"id": "serper_baidu",    "name": "Serper(百度)",   "method": "HTTP API",    "star": 5},
+      {"id": "serper_google",   "name": "Serper(Google)",  "method": "HTTP API",    "star": 5},
+      {"id": "sogou_web",       "name": "搜狗网页",        "method": "HTTP",        "star": 4},
+      {"id": "ccgp",            "name": "政府采购网",      "method": "HTTP/Browser","star": 5},
+      {"id": "bosszhipin",      "name": "Boss直聘",       "method": "HTTP",        "star": 4},
+      {"id": "gov_cn",          "name": "政府官网",       "method": "Playwright",  "star": 5},
+      {"id": "liepin",          "name": "猎聘网",         "method": "HTTP",        "star": 4}
+    ],
+    "crawler_architecture": {
+      "Layer1": {"name": "HTTP池", "tools": ["urllib", "httpx"], "features": ["UA轮换", "重试", "连接复用"]},
+      "Layer2": {"name": "Playwright真浏览器", "tools": ["chromium"], "features": ["JS渲染", "交互点击", "截图", "自动降级"]},
+      "Layer3": {"name": "crawl4ai + LLM", "tools": ["crawl4ai", "Groq API"], "features": ["正文提取", "关键词抽取", "结构化情报"]}
+    },
+    "files": [
+      "/Users/tz/.agents/skills/smart-search/scripts/search.py",
+      "/Users/tz/.qclaw/workspace/skills/pipeline/unified_crawler.py"
+    ]
+  },
+
+  "organs": {
+    "eyes":   {"描述": "视觉感知",              "tools": ["browser", "agent-browser", "canvas/snapshot", "Playwright"]},
+    "ears":   {"描述": "弱信号监听",            "tools": ["heartbeat", "weak-signal-monitor", "n8n-workflow-patterns"]},
+    "brain":  {"描述": "记忆与推理",            "tools": ["memory_search", "memory_get", "sessions_history", "reasoning"]},
+    "legs":   {"描述": "执行与移动",            "tools": ["exec", "sessions_spawn", "cron", "subagents"]},
+    "voice":  {"描述": "语音输出",              "tools": ["tts"]}
+  },
+
+  "safety": {
+    "noDeletePolicy":   "trash > rm，重要文件不删除",
+    "externalAction":  "发送前必须确认",
+    "capabilityAudit": "新技能首次执行通知用户",
+    "upgradeGate":     "腾讯(QClaw)迭代后必须验证能力注册表完整性",
+    "gitBackup":       "所有重大变更本地commit，GitHub push待配置",
+    "configGuardian":  "config-guardian.py 每次启动自动检查通道完整性"
+  },
+
+  "config_history": {
+    "2026-03-22T01:47": "QClaw升级2026.3.13导致telegram/slack通道丢失",
+    "2026-03-22T05:07": "恢复telegram+slack通道，plugins.allow补全",
+    "2026-03-22T05:12": "建立config-guardian.py防护机制",
+    "2026-03-22T05:26": "Serper API Key配置完成，smart-search v2.0升级",
+    "2026-03-22T05:58": "smart-search v2.1 S+级升级，unified_crawler融合"
+  },
+
+  "intelligence_db": "memory/intelligence/",
+  "health_check": {
+    "cron_job_id": "5365d18b-9571-4176-ac7c-efda01c4a913",
+    "schedule": "每日09:00 PDT",
+    "checks": [
+      "验证CAPABILITY_REGISTRY完整性",
+      "检查弱信号监控cron jobs是否存活",
+      "扫描memory/intelligence/新文件",
+      "扫描新增skill并提示注册"
+    ]
+  },
+
+  "hook": {
+    "entry": "/Users/tz/.qclaw/workspace/HOOK.md",
+    "description": "操作纪律：做完≠写完，操作后必须更新状态文件"
+  },
+  "pending_verification": [
+    {"item": "Telegram通道", "status": "❓ 未验证", "note": "channel配置存在，但chat_id未知，需要用户确认收到测试消息"}
+  ],
+  "upgrades": [
+    {"date": "2026-03-22", "version": "1.0", "action": "gov-sales-pipeline + intelligence-gather捆绑"},
+    {"date": "2026-03-22", "version": "1.1", "action": "能力注册表v1.1：5个skill全部注册，情报库目录"},
+    {"date": "2026-03-22", "version": "1.2", "action": "client-stage-tracker路由，health-check cron，config-guardian"},
+    {"date": "2026-03-22", "version": "1.3", "action": "Telegram/Slack恢复，Serper Key配置"},
+    {"date": "2026-03-22", "version": "2.0", "action": "smart-search v2.0 S级8通道，unified_crawler v1.0，9通道零错误"}
+  ]
+}
