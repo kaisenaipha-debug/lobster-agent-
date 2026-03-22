@@ -59,6 +59,16 @@
 5. 全部存在 → ✅ 注册表完整
 ```
 
+## Skill Guardian（自动守护）
+
+- **脚本：** `skills/pipeline/skill_guardian.py`
+- **Cron Job ID：** `1b461446-d850-417c-8ff1-987e48ebd578`（每小时）
+- **监控：** `~/.agents/skills/` 全部 `.md` 文件 MD5
+- **基准状态：** `memory/skill_guardian_state.json`（206个文件已快照）
+- **本地备份：** `~/.qclaw/workspace/skills-backup/`（rsync，每次运行更新）
+- **GitHub 备份：** 增量同步，added/modified 自动推送
+- **恢复：** 任意文件丢失 → 从 GitHub `skills-backup/` 恢复
+
 ---
 
 ## 技能备份流程（升级前必执行）
