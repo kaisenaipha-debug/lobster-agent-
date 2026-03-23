@@ -1,0 +1,20 @@
+{
+  "name": "pipeline",
+  "version": "1.0.0",
+  "description": "三条核心能力链路： 1. mem0-bridge   — 长期记忆闭环 2. crawl-pipeline — 爬取→分析→输出 3. agent-loop    — 自主任务规划执行",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "tsx": "^4.21.0"
+  },
+  "devDependencies": {
+    "@types/node": "^25.5.0",
+    "playwright": "^1.58.2",
+    "typescript": "^6.0.2"
+  }
+}

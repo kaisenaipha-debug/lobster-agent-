@@ -55,6 +55,38 @@ Capture what matters. Decisions, context, things to remember. Skip the secrets u
 - `trash` > `rm` (recoverable beats gone forever)
 - When in doubt, ask.
 
+## 大模型操作铁律（强制执行！）
+
+### 强制检查规则
+**任何操作大模型/浏览器前，必须先运行：**
+```bash
+~/.qclaw/venvs/crawl4ai/bin/python3 ~/.qclaw/workspace/skills/lm-operator/enforcer.py can_send
+```
+- 返回非0 → 立即停止
+- 不允许绕过，不允许跳过
+
+### 违规代价
+- 绕过检查 = 违反系统核心规则
+- 连续3次违规 = 自动锁定
+
+### 看门狗机制
+使用Python版精准看门狗：
+```bash
+python3 ~/.qclaw/workspace/skills/lm-operator/watchdog.py
+```
+
+规则：
+- 白名单进程永不kill（含--remote-debugging-port）
+- CDP附着的Chrome只断连不kill
+- 只有托管进程才允许回收
+- 必须经过quarantine(15s) + graceful shutdown(15s)
+
+### 正确流程
+1. 运行 enforcer.py can_send → 检查是否通过
+2. 通过 → 操作
+3. 不通过 → 停止
+4. 操作后 → enforcer.py confirm
+
 ## External vs Internal
 
 **Safe to do freely:**
