@@ -229,3 +229,105 @@ with sync_playwright() as p:
 ```
 
 **重要：** 用 Playwright CDP 连接，不用 browser 工具（会出黑图）
+
+---
+
+## QClaw 六件套架构（2026-03-23）
+
+### 完整层级
+```
+QClawAgentLoop          ← 多轮推理循环（大脑）
+    ↓ runTask()
+QClawPlanner            ← 规则路由 + LLM 接入 + 失败自动切换
+    ↓ plan()
+QClawSkillRunner        ← Skill 执行引擎（超时/取消/队列）
+    ↓ runSkill()
+QClawBrowserManager     ← Page 池化 + Lease 归还 + Janitor 自动回收
+    ↓ getReadyPage()
+QClawSkillRegistry      ← 技能元数据中心（权限/暴露策略/可用性查询）
+    ↓
+ChromeSupervisor        ← Chrome 进程 + CDP 连接自愈（✅已整合 Python）
+    ↓ Playwright CDP
+Chrome（Profile 34，kaisenaipha@gmail.com 已登录）
+```
+
+### 决策优先级（Planner）
+```
+1. 规则路由  tryRuleRouting()     ← 分数制，优先级最高
+2. LLM 大脑  tryLlmPlanner()     ← 可注入 GPT/Claude
+3. 历史推断  tryHistoryBased()   ← 上轮失败自动换 skill
+4. 最终兜底  tryFallback()       ← 必定执行
+```
+
+### 关键设计模式
+**Lease 模式：** page 借出 → 用完 release() 归还池，不是 close；崩溃 markBroken() 自动回收
+**Generation 失效：** 浏览器断连时 generation++，旧 lease 全部自动作废
+**指数退避：** Chrome 重启间隔 1s→2s→4s→...→30s 上限
+**双层健康检查：** socket 端口探针 + DevTools HTTP probe
+
+### SkillRegistry 权限体系
+```
+BROWSER_READ | BROWSER_WRITE | PAGE_NAVIGATION | FORM_INPUT | CLICK
+DOWNLOAD | SCREENSHOT | NETWORK_EXTERNAL | SYSTEM_INTERNAL
+```
+Planner 调用 skill 前查 `validateSkillCallable(name)` 做安全校验
+
+### Agent Loop 记忆流
+```
+USER(goal) → PLAN(决策) → ACTION(执行) → OBSERVATION(结果) → RESULT/FINISH
+```
+每轮记忆带上 `turn` 编号，Planner 可以查阅历史决定下一步
+
+### 多语言整合方案
+- ChromeSupervisor：Node.ts + Python stdio bridge（已完成）
+- BrowserManager/SkillRunner/AgentLoop：Node.js 独立进程，Python 通过 stdio RPC 调用
+- LLM Planner：把 memory 打包发给 GPT/Claude，让 AI 决定下一步 skill
+
+### AWS Multi-Agent Orchestrator 参考
+AWS 开源框架同时支持 Python + TypeScript，核心思路一致：central orchestrator 做意图分类 + 动态路由到 specialized agents。
+
+---
+
+## QClawSkillRunner 架构（2026-03-23）
+
+**文件：** `browser_supervisor.ts`（同级目录，未落地）
+
+### 层级
+```
+QClawSkillRunner
+    ↓ runSkill()
+    ↓ getReadyPage()
+QClawBrowserManager（Page池化+Lease）
+    ↓ supervisor.getBrowser()
+ChromeSupervisor（✅已整合）
+```
+
+### 核心能力
+- 任务注册/注销（`registerSkill`）
+- 串行任务队列 + drain
+- 超时控制（per-skill + 全局 default）
+- AbortSignal 支持（外部取消 + 内部检测）
+- 生命周期钩子（onQueued/onStart/onSuccess/onFailed/onTimeout/onFinally）
+- `ReadyPageLease` 自动归还（`release()`）或标记回收（`markBroken()`）
+- Generation 失效标记（浏览器断连后旧 lease 自动作废）
+
+### SkillContext
+```typescript
+{ runId, skillName, input, signal, page, lease, startedAt, now(), log() }
+```
+
+### 状态
+- SkillRunStatus: QUEUED | RUNNING | SUCCESS | FAILED | TIMEOUT | CANCELLED
+- ManagedPageState: IDLE | BUSY | BROKEN | CLOSED
+- SupervisorState: STOPPED | STARTING | CONNECTING | CONNECTED | DEGRADED | RECOVERING
+
+### 判断
+**暂不整合 Python pipeline。** 现有任务模型是「串行执行→结束」，无动态注册/外部取消/精细化超时需求。
+
+**但 ChromeSupervisor 已整合（Python bridge）。** SkillRunner/AgentLoop/Planner/Registry 属于「等 skill 数量>10、多人协作、需要 LLM 规划」时才拆出来。当前阶段先用简单粗暴的方式跑。
+
+### 落地文件
+- ChromeSupervisor: `skills/pipeline/browser_supervisor.ts`
+- Python Bridge: `skills/pipeline/chrome_supervisor_bridge.py`
+- SkillRunner/BrowserManager/AgentLoop/Planner/Registry: 存档于 MEMORY.md，需要时直接组装
+
