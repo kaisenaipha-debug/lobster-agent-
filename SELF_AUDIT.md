@@ -95,3 +95,12 @@
 ---
 
 _Last updated: 2026-03-22_
+
+## 2026-03-22 17:15 教训
+
+**浏览器使用铁律：**
+- 永远用 `chrome-relay`（profile="chrome-relay"）接管用户已打开的Chrome
+- 用户点QClaw工具栏Browser Relay按钮 badge=ON → 才能连上
+- 严禁新开窗口（用户原话："你新开窗口干什么？当瞎子"）
+- 写入TOOLS.md，已固化
+
