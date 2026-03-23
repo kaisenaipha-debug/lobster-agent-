@@ -125,5 +125,24 @@
     "description": "代码执行",
     "last_updated": "2026-03-23T14:19:28.087303+00:00",
     "history": []
+  },
+  "chrome-supervisor": {
+    "name": "chrome-supervisor",
+    "version": "1.0.0",
+    "description": "Chrome自愈管理（Node.js ChromeSupervisor + Python桥接层）",
+    "files": [
+      "skills/pipeline/browser_supervisor.ts",
+      "skills/pipeline/chrome_supervisor_bridge.py"
+    ],
+    "replaces": "browser_control.py 原始 _ensure_chrome()",
+    "capabilities": [
+      "进程死亡自动重启Chrome",
+      "指数退避重连（最多30s间隔）",
+      "双层健康检查（端口探针+DevTools HTTP probe）",
+      "三种恢复路径：重连→杀进程+重连→完整重启",
+      "connectGeneration防stale连接",
+      "Graceful shutdown（SIGTERM→SIGKILL）"
+    ],
+    "status": "active"
   }
 }

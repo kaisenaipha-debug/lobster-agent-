@@ -1,5 +1,5 @@
 """
-browser_control.py — 浏览器自动化 v4.0 人类级
+browser_control.py — 浏览器自动化 v5.0 人类级
 
 核心能力：
   ✅ CDP连接真实Chrome（kaisenaipha@gmail.com 已登录）
@@ -8,6 +8,7 @@ browser_control.py — 浏览器自动化 v4.0 人类级
   ✅ LLM引导提取（告诉AI你想找什么）
   ✅ 真实颜色截图
   ✅ 自动保持登录状态（_google_logged_in全局标志）
+  ✅ Chrome自愈管理（ChromeSupervisor，进程死亡自动重启）
 
 用法：
   from browser_control import BrowserSession
@@ -34,30 +35,41 @@ _GOOGLE_COOKIE_FILE = Path.home() / ".qclaw" / "workspace" / ".google_session"
 _google_logged_in = _GOOGLE_COOKIE_FILE.exists()  # 持久化标志：文件存在=已登录
 _playwright = None
 
-# ─── Chrome管理 ───────────────────────────────────────
+# ─── Chrome管理（由 ChromeSupervisor 守护进程提供自愈能力）──
 
 def _ensure_chrome():
-    """确保 pha Chrome 在运行"""
+    """
+    确保 pha Chrome 在运行。
+    现在委托给 chrome_supervisor_bridge.py 的 ChromeBridge：
+      - 进程死亡自动重启 Chrome
+      - 指数退避重连（最多 30s 间隔）
+      - 双层健康检查（端口探针 + DevTools HTTP probe）
+    """
     try:
+        from chrome_supervisor_bridge import ChromeBridge
+        bridge = ChromeBridge()
+        if not bridge.is_healthy():
+            bridge.start()
+    except Exception as e:
+        # 降级：保持原有逻辑（直接启动 Chrome）
         import httpx
-        r = httpx.get(f"{CDP_URL}/json/version", timeout=3)
-        if r.status_code == 200:
-            return True
-    except:
-        pass
-    # 启动 Chrome
-    chrome_bin = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
-    subprocess.Popen(
-        [chrome_bin,
-         "--remote-debugging-port=9222",
-         f"--user-data-dir={Path.home()}/.qclaw/browser/pha-debug",
-         "--profile-directory=Profile 34",
-         "--no-first-run", "--no-default-browser-check",
-         "--disable-sync", "--disable-background-networking"],
-        stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL
-    )
-    time.sleep(3)
-    return True
+        try:
+            r = httpx.get(f"{CDP_URL}/json/version", timeout=3)
+            if r.status_code == 200:
+                return
+        except:
+            pass
+        chrome_bin = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
+        subprocess.Popen(
+            [chrome_bin,
+             "--remote-debugging-port=9222",
+             f"--user-data-dir={Path.home()}/.qclaw/browser/pha-debug",
+             "--profile-directory=Profile 34",
+             "--no-first-run", "--no-default-browser-check",
+             "--disable-sync", "--disable-background-networking"],
+            stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL
+        )
+        time.sleep(3)
 
 def _get_pw():
     global _playwright
