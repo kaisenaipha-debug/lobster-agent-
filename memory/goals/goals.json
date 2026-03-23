@@ -136,22 +136,25 @@
       "id": "G006",
       "name": "企业微信配置",
       "description": "",
-      "status": "active",
+      "status": "completed",
       "priority": "P3",
       "created_at": "2026-03-21T11:45:27.745005",
       "updated_at": "2026-03-21T11:45:27.745010",
-      "completed_at": null,
+      "completed_at": "2026-03-23T11:30:00.000000",
       "milestones": [
         {
           "date": "2026-03-21",
           "text": "目标创建：企业微信配置",
           "type": "created"
+        },
+        {
+          "date": "2026-03-23",
+          "text": "wecom_mcp验证可用，企业微信配置完成",
+          "type": "update"
         }
       ],
-      "next_step": "确定执行计划",
-      "blockers": [
-        "缺wsUrl/guid/userId"
-      ],
+      "next_step": "",
+      "blockers": [],
       "tags": []
     },
     "G007": {

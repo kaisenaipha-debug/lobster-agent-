@@ -18,6 +18,16 @@ import json, sys, sqlite3
 from pathlib import Path
 from datetime import datetime
 
+# ── 能力扫描（每次启动必须）────────────────────────────────
+try:
+    _scanner_path = __file__.parent / "capability_scanner.py"
+    if _scanner_path.exists():
+        import subprocess
+        # 运行扫描，更新注册表（静默，只更新文件）
+        subprocess.run([sys.executable, str(_scanner_path)], capture_output=True, timeout=30)
+except Exception:
+    pass
+
 # ── BRAIN 大脑启动 ──────────────────────────────────────────
 try:
     _brain_path = Path.home() / ".qclaw" / "BRAIN.py"

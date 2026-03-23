@@ -24,6 +24,7 @@ STATE_FILE = WORKSPACE / "memory" / "agent_loop_state.json"
 # ─── 路由表：任务类型 → 处理模块 ──────────────────────────
 
 from http_pool import search, groq_fast
+from google_session import google_search
 from scenario_engine import process_plus, format_plus
 
 # ─── BRAIN 大脑集成 ──────────────────────────────────────
@@ -196,37 +197,41 @@ def handle_government(ctx: dict) -> str:
 
 
 def handle_search(ctx: dict) -> str:
-    """搜索路径：BRAIN SmartSearch 优先，降级到 http_pool"""
-    query = ctx["query"]
+    """Search path: google_session priority -> http_pool fallback"""
+    import asyncio
+    query = ctx['query']
 
-    # ── BRAIN SmartSearch ──────────────────────────────
+    # google_session (logged in, no captcha)
     results = []
-    if _brain_loaded and _brain is not None:
+    try:
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        raw = loop.run_until_complete(google_search(query, num=10))
+        loop.close()
+        if raw:
+            results = [{'title': r['title'], 'url': r['url'], 'source': 'Google'} for r in raw]
+    except Exception:
+        pass
+
+    # http_pool fallback
+    if not results:
         try:
-            s = get_search()
-            results = s.search(query, search_type="all")
-            results = [{"title": r["title"], "url": r.get("url",""), "source": r["source"], "star": r.get("star",3)} for r in results]
+            raw = search(query, count=8)
+            results = [{'title': r['title'], 'url': r.get('url',''), 'source': r.get('source','')} for r in raw]
         except Exception:
             pass
 
-    # ── 降级：http_pool ────────────────────────────────
     if not results:
-        raw = search(query, count=8)
-        results = [{"title": r["title"], "url": r.get("url",""), "source": r["source"]} for r in raw]
+        fallback = groq_fast(f'About: {query}, summarize in 50 chars', max_tokens=100)
+        return f'Search failed. Reference: {fallback}'
 
-    if not results:
-        fallback = groq_fast(f"关于「{query}」的信息，用50字概括要点", max_tokens=100)
-        return f"搜索无结果，补充参考：\n{fallback}"
-
-    lines = [f"🔍 搜索「{query}」，找到 {len(results)} 条结果：\n"]
+    lines = [f'Search query, found {len(results)} results:']
     for r in results:
-        star = "⭐" * r.get("star", 3)
-        lines.append(f"[{r['source']}] {star} {r['title']}")
-        if r.get("url"):
-            lines.append(f"   → {r['url'][:80]}")
-        lines.append("")
-    return "\n".join(lines)
-
+        lines.append(f"[{r['source']}] {r['title']}")
+        if r.get('url'):
+            lines.append(f"   -> {r['url'][:80]}")
+        lines.append('')
+    return chr(10).join(lines)
 
 def handle_client(ctx: dict) -> str:
     """客户更新路径：读取档案 + 分析"""

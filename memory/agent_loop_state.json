@@ -420,6 +420,16 @@
         "intent": "冷情报：河源市教育局"
       },
       "result_preview": "📋 客户：河源市教育局 | 阶段：S1_INTEL\n🌀 场景性质：Complicated\n🔴 红队预警：经办人被架空 / 领导层意见不合\n🧠 心智模拟：通过\n📖 叙事：情报收集阶段 → 时间窗口内的行"
+    },
+    {
+      "time": "2026-03-22T22:52:03.556328",
+      "input": "搜索 河源市教育局局长杨利华 近期工作动态",
+      "path": "search",
+      "ctx": {
+        "query": "搜索 河源市教育局局长杨利华 近期工作动态",
+        "intent": "搜索 河源市教育局局长杨利华 近期工作动态"
+      },
+      "result_preview": "Search query, found 10 results:\n[Google] 2026年，河源教育这样干\n\n河源市人民政府\nhttp://www.heyuan.gov.cn › content ›"
     }
   ]
 }
