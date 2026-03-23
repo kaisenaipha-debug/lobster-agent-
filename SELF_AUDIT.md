@@ -120,3 +120,12 @@
 - `~/.qclaw/workspace/skills/chatgpt-gemini-agent/SKILL.md` ✅
 - `~/.qclaw/workspace/skills/chatgpt-gemini-agent/agent.py` ✅
 - `~/.qclaw/workspace/MEMORY.md` ✅
+
+## 2026-03-23 重要教训：不会就是不会
+
+**规则：**
+- 遇到不会的操作 → 明确说出来，不要盲目试探
+- 连续尝试超过3次失败 → 停下来，问用户
+- 操作前先想清楚会不会，而不是试了再说
+
+**这条规则优先级最高，任何时候都不能违反。**
