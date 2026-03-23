@@ -20,12 +20,10 @@
     "skills/self-improving/openclaw-heartbeat.md": "97e99d8bdad64851fa407ad682d0112f",
     "skills/self-improving/heartbeat-state.md": "3054c633169572561d997adf068c6b91",
     "skills/self-improving-agent/SKILL.md": "0e5538b9ba2de3b29eecec69c1f86d86",
-    "skills/intelligence-gather/SKILL.md": "42001e04968a17b45232ce2e6ff05a19",
     "skills/human-browser/SKILL.md": "24b6e7c5de9dbd8ac39d8d7d58bacc91",
     "skills/api-gateway/SKILL.md": "c4440cb08713ba6d427f731410776f1c",
     "skills/self-reflection/SKILL.md": "0d5b5f2a98c2681f1b17c02aa53c36d7",
     "skills/session-memory/SKILL.md": "c99883e013ae0ca0b1ad8f650e7ced01",
-    "skills/chatgpt-image-gen/SKILL.md": "d33ce8c79ebcd0264c92c0fbeab84a78",
     "skills/ontology/SKILL.md": "e7b686efee667166845146e1b2be3146",
     "skills/weak-signal-monitor/SKILL.md": "98ce0fa77f860633aaeafe2cd950d0f1",
     "skills/self-improvement/SKILL.md": "ee0220e94e583bcad2cf01650e16586a",
@@ -38,7 +36,6 @@
     "skills/n8n-workflow-patterns/scheduled_tasks.md": "4500668bb23d7756584a1b582ed36663",
     "skills/client-stage-tracker/SKILL.md": "6ca6baca4a1fab200011cc0258aefd51",
     "skills/marketing-wechat-official-account/SKILL.md": "2482b7819b2d9998f8dbb8d3b4c4b8bf",
-    "skills/personal-productivity/SKILL.md": "8d369ab1c4dcd74c212737850a15faed",
     "skills/x-search/SKILL.md": "bbc3c0195dfdbe76d824d29f6b25b2eb",
     "skills/knowledge-graph-builder/README.md": "d691d16a0d98878f4abe1019b27c9d71",
     "skills/knowledge-graph-builder/SKILL.md": "a192952fde6bcd4d9ff661e1eaa1c002",
@@ -47,10 +44,8 @@
     "skills/marketing-xiaohongshu-specialist/SKILL.md": "1b8c91ee09d56b8136e3159e06a82c03",
     "skills/trello/SKILL.md": "d28bea086e41eeaefcb56045e492d490",
     "skills/gov-intel/SKILL.md": "d521349b5427deae48c3409c75df7451",
-    "skills/gov-client-approach/SKILL.md": "5a99c1362ddaa4d3d37d416da86440d8",
     "skills/marketing-baidu-seo-specialist/SKILL.md": "65a3d6c868c5cc160ff259590a3bacf5",
     "skills/ai-automation-workflows/SKILL.md": "aad4e52024be1770ca945d6576580307",
-    "skills/sales-data-extraction-agent/SKILL.md": "7d43b36da5746c7e4c23f51377216b59",
     "skills/gov-sales-pipeline/SKILL.md": "af60d8bc1bf961f878d0e44099677b14",
     "skills/agent-teams-playbook/README.md": "1563c093e84d7c99949f87147b7d3fc2",
     "skills/agent-teams-playbook/README_EN.md": "03c10fc60907bca47b0ea831333997f5",
@@ -58,10 +53,8 @@
     "skills/auto-updater/SKILL.md": "c0f3e3918c0586c642b581a03b2a462c",
     "skills/auto-updater/references/agent-guide.md": "4be637e3d215ed33ce2d4368d092d0ef",
     "skills/auto-updater/references/summary-examples.md": "6a68330d4b91adbdd983d71dd137dcf9",
-    "skills/gov-client-approach/references/spi-model.md": "a3cb56f243fcbac1e48e7d2d2f01fae2",
     "skills/gov-intel/references/spp.md": "05399905720fdb3fc66c66f51b3e0040",
     "skills/gov-intel/references/gov-intel.md": "683a69ae30f7ed781b318ce970040f6f",
-    "skills/personal-productivity/references/guest-insights.md": "30ac8dfc27574aea8abef41050c9bf06",
     "skills/self-improvement/references/examples.md": "30c3222469e0a59e80ae1975e98a69c1",
     "skills/self-improvement/references/openclaw-integration.md": "3be0ed9e951b0bc35b4e9ca960bba573",
     "skills/self-improvement/references/hooks-setup.md": "f64f65eb9b2bc77efcc624ddcdc324d2",
@@ -70,8 +63,6 @@
     "skills/self-improvement/hooks/openclaw/HOOK.md": "03ea1dfb06520f36fb58ef985b83b97e",
     "skills/ontology/references/queries.md": "c632abc7dc8dce4bae4a37ebc1639bf2",
     "skills/ontology/references/schema.md": "2a402d0a3ac13297a9a65e8fa49f5092",
-    "skills/chatgpt-image-gen/references/HOW_I_GOT_SMATER.md": "013987869be56be498ab71e9b3a27f9f",
-    "skills/chatgpt-image-gen/references/OPERATIONAL_PROTOCOL.md": "b28f71b916b30240db1a5f7e73753ed0",
     "skills/api-gateway/references/cal-com/README.md": "aef6e466e8cb4f81e0f73539c7d59929",
     "skills/api-gateway/references/attio/README.md": "523b0fadc1a4ac95ab39c5b5211a18e1",
     "skills/api-gateway/references/squareup/README.md": "e7800c61b11c6992670022b91ed6cca1",
@@ -226,7 +217,7 @@
     "skills/agent-browser/references/snapshot-refs.md": "0941be7f4d7c30d83efd706d87dd3963",
     "skills/agent-browser/references/session-management.md": "9841d9a0b113b0294fe20d0d020a783e"
   },
-  "last_sync": "2026-03-23T13:03:00.675592",
+  "last_sync": "2026-03-23T14:03:00.878154",
   "alerts": [
     {
       "time": "2026-03-22T16:47:13.567263",
@@ -234,6 +225,20 @@
         "skills/x-search/references/operator-cheatsheet.md",
         "skills/x-search/references/scene-strategies.md",
         "skills/x-search/references/advanced-google.md"
+      ]
+    },
+    {
+      "time": "2026-03-23T13:53:00.947569",
+      "deleted": [
+        "skills/intelligence-gather/SKILL.md",
+        "skills/chatgpt-image-gen/SKILL.md",
+        "skills/personal-productivity/SKILL.md",
+        "skills/gov-client-approach/SKILL.md",
+        "skills/sales-data-extraction-agent/SKILL.md",
+        "skills/gov-client-approach/references/spi-model.md",
+        "skills/personal-productivity/references/guest-insights.md",
+        "skills/chatgpt-image-gen/references/HOW_I_GOT_SMATER.md",
+        "skills/chatgpt-image-gen/references/OPERATIONAL_PROTOCOL.md"
       ]
     }
   ]
