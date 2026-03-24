@@ -1,298 +1,677 @@
 /**
- * QClawPlanner.ts - 规划决策器
- * 
- * 来源：QClaw官方架构
- * 用途：整合SkillRegistry + PromptBuilder，接LLM做规划决策
+ * QClawPlanner.ts - 规划决策器 v2.0
+ *
+ * 来源：QClaw官方架构 v2
+ * 用途：整合SkillRegistry + PromptBuilder，四层决策路由
  * 依赖：QClawSkillRegistry.ts, QClawPromptBuilder.ts
  */
 
 type LogLevel = 'DEBUG' | 'INFO' | 'WARN' | 'ERROR';
 
-// ===================== 类型定义 =====================
-
 export type PlannerDecisionType = 'RUN_SKILL' | 'FINISH' | 'FAIL';
+export type SkillRiskLevel = 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
+export type SkillDomain = 'SEARCH' | 'BROWSE' | 'EXTRACTION' | 'NAVIGATION' | 'FORM' | 'AUTH' | 'DOWNLOAD' | 'SYSTEM' | 'CUSTOM';
+
+export interface SkillExecutionPolicy {
+  defaultTimeoutMs?: number;
+  maxTimeoutMs?: number;
+  retryable?: boolean;
+  maxRetries?: number;
+  queueGroup?: string;
+  exclusive?: boolean;
+  pageReusePreferred?: boolean;
+  pagePoolRequired?: boolean;
+  idempotent?: boolean;
+}
+
+export interface SkillCapabilityFlags {
+  readOnly?: boolean;
+  mutatesPage?: boolean;
+  mutatesRemoteState?: boolean;
+  needsLoginState?: boolean;
+  needsNetwork?: boolean;
+  producesStructuredOutput?: boolean;
+}
+
+export interface SkillPublicViewV2 {
+  name: string;
+  version: string;
+  aliases: string[];
+  displayName?: string;
+  description?: string;
+  tags: string[];
+  category?: string;
+  domains: SkillDomain[];
+  riskLevel: SkillRiskLevel;
+  status: 'ENABLED' | 'DISABLED' | 'DEPRECATED' | 'EXPERIMENTAL';
+  permissions: string[];
+  capabilities: SkillCapabilityFlags;
+  execution: SkillExecutionPolicy;
+  plannerCallable: boolean;
+  manualCallable: boolean;
+  plannerVisible: boolean;
+  uiVisible: boolean;
+  notes?: string;
+}
 
 export interface PlannerDecision {
   type: PlannerDecisionType;
-  reason: string;
+  reason?: string;
   skillName?: string;
-  skillInput?: Record<string, unknown>;
+  skillInput?: unknown;
   finalText?: string;
 }
 
-export interface PlannerOptions {
-  /**
-   * LLM规划器（核心）— 接收PromptBuilderContext，返回PlannerDecision
-   */
-  llmPlanner: (
-    ctx: import('./QClawPromptBuilder').PromptBuilderContext
-  ) => Promise<PlannerDecision | null>;
+export interface PlannerMemoryItem {
+  turn: number;
+  type: 'USER' | 'PLAN' | 'ACTION' | 'OBSERVATION' | 'RESULT' | 'ERROR' | 'SYSTEM';
+  content: string;
+  data?: unknown;
+  timestamp: number;
+}
 
-  /**
-   * 最大回合数
-   */
-  maxTurns?: number;
+export interface PlannerSkillResult {
+  runId: string;
+  skillName: string;
+  status: 'QUEUED' | 'RUNNING' | 'SUCCESS' | 'FAILED' | 'TIMEOUT' | 'CANCELLED';
+  output?: unknown;
+  error?: string;
+  startedAt: number;
+  endedAt: number;
+  durationMs: number;
+  cancelled?: boolean;
+  timedOut?: boolean;
+}
 
-  /**
-   * 单个技能超时（毫秒）
-   */
-  defaultSkillTimeoutMs?: number;
+export interface PlannerTurnRecord {
+  turn: number;
+  status: 'PLANNING' | 'EXECUTING' | 'OBSERVING' | 'DONE' | 'FAILED' | 'CANCELLED';
+  chosenSkill?: string;
+  chosenInput?: unknown;
+  skillResult?: PlannerSkillResult;
+  summary?: string;
+  error?: string;
+  startedAt: number;
+  endedAt?: number;
+}
 
-  /**
-   * 是否记录详细日志
-   */
-  verbose?: boolean;
-
-  /**
-   * 日志前缀
-   */
-  logPrefix?: string;
+export interface PlannerTaskInput {
+  taskType?: string;
+  userGoal: string;
+  payload?: Record<string, unknown>;
+  metadata?: Record<string, unknown>;
 }
 
 export interface PlannerContext {
   runId: string;
-  mode?: string;
-  taskType?: string;
-  task: import('./QClawPromptBuilder').PromptTaskInput;
+  task: PlannerTaskInput;
+  turn: number;
+  maxTurns: number;
+  memory: PlannerMemoryItem[];
+  turns: PlannerTurnRecord[];
+  availableSkills: SkillPublicViewV2[];
+  signal: AbortSignal;
+  now: () => number;
+  log: (level: LogLevel, message: string, extra?: unknown) => void;
 }
 
-export interface SkillRunner {
-  run(
-    skillName: string,
-    input: Record<string, unknown>,
-    options?: { timeoutMs?: number }
-  ): Promise<{ output: unknown; durationMs: number }>;
+export interface SkillRouteRuleV2 {
+  name: string;
+  enabled?: boolean;
+  skillName: string;
+  score: (ctx: PlannerContext) => number;
+  buildInput?: (ctx: PlannerContext, skill: SkillPublicViewV2) => unknown;
+  reason?: string;
 }
 
-export interface PlannerRunResult {
-  runId: string;
-  finalDecision: PlannerDecision;
-  turns: import('./QClawPromptBuilder').PromptTurnRecord[];
-  totalDurationMs: number;
-  success: boolean;
-  error?: string;
+export interface LlmPlannerResponseV2 {
+  type: PlannerDecisionType;
+  reason?: string;
+  skillName?: string;
+  skillInput?: unknown;
+  finalText?: string;
+}
+
+export interface PlannerHooksV2 {
+  onBeforePlan?: (ctx: PlannerContext) => Promise<void> | void;
+  onAfterPlan?: (ctx: PlannerContext, decision: PlannerDecision) => Promise<void> | void;
+  onFallback?: (ctx: PlannerContext, reason: string) => Promise<void> | void;
+}
+
+export interface QClawPlannerOptionsV2 {
+  logPrefix?: string;
+  rules?: SkillRouteRuleV2[];
+  llmPlanner?: (ctx: PlannerContext) => Promise<LlmPlannerResponseV2 | null>;
+  fallbackSkillName?: string;
+  finishOnLastSuccess?: boolean;
+  maxConsecutiveFailuresPerSkill?: number;
+  maxConsecutiveTimeoutsPerSkill?: number;
+  allowHighRisk?: boolean;
+  allowCriticalRisk?: boolean;
+  hooks?: PlannerHooksV2;
 }
 
 // ===================== 核心类 =====================
 
 export class QClawPlanner {
-  private readonly llmPlanner: (
-    ctx: import('./QClawPromptBuilder').PromptBuilderContext
-  ) => Promise<PlannerDecision | null>;
-  private readonly maxTurns: number;
-  private readonly defaultSkillTimeoutMs: number;
-  private readonly verbose: boolean;
   private readonly logPrefix: string;
+  private readonly rules: SkillRouteRuleV2[];
+  private readonly llmPlanner?: QClawPlannerOptionsV2['llmPlanner'];
+  private readonly fallbackSkillName?: string;
+  private readonly finishOnLastSuccess: boolean;
+  private readonly maxConsecutiveFailuresPerSkill: number;
+  private readonly maxConsecutiveTimeoutsPerSkill: number;
+  private readonly allowHighRisk: boolean;
+  private readonly allowCriticalRisk: boolean;
+  private readonly hooks?: PlannerHooksV2;
 
-  constructor(options: PlannerOptions) {
+  constructor(options: QClawPlannerOptionsV2 = {}) {
+    this.logPrefix = options.logPrefix ?? 'QCLAW_PLANNER_V2';
+    this.rules = options.rules ?? [];
     this.llmPlanner = options.llmPlanner;
-    this.maxTurns = options.maxTurns ?? 20;
-    this.defaultSkillTimeoutMs = options.defaultSkillTimeoutMs ?? 60_000;
-    this.verbose = options.verbose ?? false;
-    this.logPrefix = options.logPrefix ?? 'QCLAW_PLANNER';
+    this.fallbackSkillName = options.fallbackSkillName;
+    this.finishOnLastSuccess = options.finishOnLastSuccess ?? true;
+    this.maxConsecutiveFailuresPerSkill = Math.max(1, options.maxConsecutiveFailuresPerSkill ?? 2);
+    this.maxConsecutiveTimeoutsPerSkill = Math.max(1, options.maxConsecutiveTimeoutsPerSkill ?? 1);
+    this.allowHighRisk = options.allowHighRisk ?? false;
+    this.allowCriticalRisk = options.allowCriticalRisk ?? false;
+    this.hooks = options.hooks;
   }
 
   /**
-   * 执行规划循环
+   * 四层决策路由
+   * Layer 1: 规则路由（tryRuleRouting）— 分数制，优先级最高
+   * Layer 2: LLM 大脑（tryLlmPlanner）— 可注入 GPT/Claude
+   * Layer 3: 历史推断（tryHistoryBasedDecision）— 上轮失败自动换 skill
+   * Layer 4: 最终兜底（tryFallback）— 必定执行
    */
-  public async run(
-    ctx: PlannerContext,
-    skillRunner: SkillRunner,
-    registry: import('./QClawSkillRegistry').QClawSkillRegistry
-  ): Promise<PlannerRunResult> {
-    const startTime = Date.now();
-    const turns: import('./QClawPromptBuilder').PromptTurnRecord[] = [];
-    let turn = 0;
+  public async plan(ctx: PlannerContext): Promise<PlannerDecision> {
+    await this.safeHook('onBeforePlan', ctx);
 
-    this.log('INFO', `=== Planner启动 runId=${ctx.runId} goal=${ctx.task.userGoal}`);
+    if (ctx.signal.aborted) {
+      return this.finish('planner aborted before decision');
+    }
 
-    while (turn < this.maxTurns) {
-      turn++;
-      const turnStart = Date.now();
+    const validationError = this.validateContext(ctx);
+    if (validationError) {
+      return this.fail(validationError);
+    }
 
-      this.log('INFO', `--- Turn ${turn}/${this.maxTurns} ---`);
+    const usableSkills = this.getUsableSkills(ctx);
+    if (usableSkills.length === 0) {
+      return this.fail('no usable planner-callable skills after filtering');
+    }
 
-      // 获取可用技能
-      const availableSkills = registry.getAvailableSkills({
-        mode: ctx.mode,
-        taskType: ctx.taskType,
-        allowHighRisk: false,
-        requirePlannerCallable: true,
-      });
+    // Layer 0: 上一步成功 → 直接 FINISH
+    if (this.finishOnLastSuccess && ctx.turn > 1 && this.lastResult()?.status === 'SUCCESS') {
+      return this.finish('last skill succeeded, finish by policy', ctx);
+    }
 
-      // 构建Prompt
-      const { QClawPromptBuilder, buildPlannerPromptInput } = await import('./QClawPromptBuilder');
+    // Layer 1: 规则路由
+    const ruleDecision = this.tryRuleRouting(ctx, usableSkills);
+    if (ruleDecision) {
+      ctx.log('INFO', `Layer1(rule): ${ruleDecision.skillName} reason=${ruleDecision.reason}`);
+      await this.safeHook('onAfterPlan', ctx, ruleDecision);
+      return ruleDecision;
+    }
 
-      const builder = new QClawPromptBuilder({ strictJsonOutput: true });
-      const promptCtx = buildPlannerPromptInput({
-        runId: ctx.runId,
-        mode: ctx.mode,
-        task: ctx.task,
-        turn,
-        maxTurns: this.maxTurns,
-        memory: [], // 可注入记忆
-        turns,
-        availableSkills,
-        observations: [],
-      });
+    // Layer 2: LLM 大脑
+    const llmDecision = await this.tryLlmPlanner(ctx, usableSkills);
+    if (llmDecision) {
+      ctx.log('INFO', `Layer2(llm): ${llmDecision.type} reason=${llmDecision.reason}`);
+      await this.safeHook('onAfterPlan', ctx, llmDecision);
+      return llmDecision;
+    }
 
-      const promptResult = builder.build(promptCtx);
+    // Layer 3: 历史推断
+    const historyDecision = this.tryHistoryBasedDecision(ctx, usableSkills);
+    if (historyDecision) {
+      ctx.log('INFO', `Layer3(history): ${historyDecision.type} reason=${historyDecision.reason}`);
+      await this.safeHook('onAfterPlan', ctx, historyDecision);
+      return historyDecision;
+    }
 
-      if (this.verbose) {
-        this.log('DEBUG', `Turn ${turn} Prompt构建完成`);
-      }
+    // Layer 4: 兜底
+    const fallbackDecision = this.tryFallback(ctx, usableSkills);
+    ctx.log('INFO', `Layer4(fallback): ${fallbackDecision.type} reason=${fallbackDecision.reason}`);
+    await this.safeHook('onAfterPlan', ctx, fallbackDecision);
+    return fallbackDecision;
+  }
 
-      // 调用LLM
-      let decision: PlannerDecision | null;
+  // ===================== 上下文校验 =====================
+
+  private validateContext(ctx: PlannerContext): string | null {
+    if (!ctx.task?.userGoal?.trim()) return 'task.userGoal is required';
+    if (!Array.isArray(ctx.availableSkills) || ctx.availableSkills.length === 0) {
+      return 'availableSkills is empty';
+    }
+    return null;
+  }
+
+  private getUsableSkills(ctx: PlannerContext): SkillPublicViewV2[] {
+    return ctx.availableSkills
+      .filter((s) => s.status === 'ENABLED' || s.status === 'EXPERIMENTAL')
+      .filter((s) => s.plannerCallable)
+      .filter((s) => s.plannerVisible)
+      .filter((s) => this.isRiskAllowed(s))
+      .filter((s) => !this.shouldAvoidDueToFailures(ctx, s.name))
+      .filter((s) => !this.shouldAvoidDueToTimeouts(ctx, s.name));
+  }
+
+  private isRiskAllowed(skill: SkillPublicViewV2): boolean {
+    if (skill.riskLevel === 'CRITICAL') return this.allowCriticalRisk;
+    if (skill.riskLevel === 'HIGH') return this.allowHighRisk;
+    return true;
+  }
+
+  // ===================== Layer 1: 规则路由 =====================
+
+  private tryRuleRouting(ctx: PlannerContext, usableSkills: SkillPublicViewV2[]): PlannerDecision | null {
+    const scored = this.rules
+      .filter((r) => r.enabled !== false)
+      .map((rule) => {
+        let score = 0;
+        try { score = rule.score(ctx); } catch (err) { /* skip */ }
+        return { rule, score };
+      })
+      .filter((x) => x.score > 0)
+      .sort((a, b) => b.score - a.score);
+
+    for (const item of scored) {
+      const skill = this.findSkill(item.rule.skillName, usableSkills);
+      if (!skill) continue;
+
+      let input: unknown = ctx.task.payload ?? {};
       try {
-        decision = await this.llmPlanner(promptCtx);
-      } catch (e: any) {
-        this.log('ERROR', `Turn ${turn} LLM调用失败: ${e.message}`);
-        break;
+        if (item.rule.buildInput) {
+          input = item.rule.buildInput(ctx, skill);
+        }
+      } catch (err) {
+        ctx.log('WARN', `rule buildInput error rule=${item.rule.name}: ${this.errMsg(err)}`);
       }
 
-      if (!decision) {
-        this.log('WARN', `Turn ${turn} LLM返回null`);
-        break;
-      }
-
-      const turnRecord: import('./QClawPromptBuilder').PromptTurnRecord = {
-        turn,
-        status: 'EXECUTING',
-        chosenSkill: decision.skillName,
-        chosenInput: decision.skillInput,
-        startedAt: turnStart,
+      return {
+        type: 'RUN_SKILL',
+        reason: item.rule.reason ?? `rule matched: ${item.rule.name}`,
+        skillName: skill.name,
+        skillInput: input,
       };
+    }
 
-      // 执行决策
-      if (decision.type === 'FINISH') {
-        turnRecord.status = 'DONE';
-        turnRecord.endedAt = Date.now();
-        turns.push(turnRecord);
+    return null;
+  }
 
-        const result: PlannerRunResult = {
-          runId: ctx.runId,
-          finalDecision: decision,
-          turns,
-          totalDurationMs: Date.now() - startTime,
-          success: true,
+  // ===================== Layer 2: LLM 大脑 =====================
+
+  private async tryLlmPlanner(ctx: PlannerContext, usableSkills: SkillPublicViewV2[]): Promise<PlannerDecision | null> {
+    if (!this.llmPlanner) return null;
+
+    try {
+      const res = await this.llmPlanner({ ...ctx, availableSkills: usableSkills });
+      if (!res) return null;
+
+      if (res.type === 'RUN_SKILL') {
+        if (!res.skillName) {
+          return this.fail('llmPlanner returned RUN_SKILL without skillName');
+        }
+        const skill = this.findSkill(res.skillName, usableSkills);
+        if (!skill) {
+          return this.fail(`llmPlanner selected unavailable skill: ${res.skillName}`);
+        }
+        return {
+          type: 'RUN_SKILL',
+          reason: res.reason ?? 'llm planner selected skill',
+          skillName: skill.name,
+          skillInput: res.skillInput ?? ctx.task.payload ?? {},
         };
-
-        this.log('INFO', `✅ FINISH: ${decision.reason} | 总耗时: ${result.totalDurationMs}ms`);
-        return result;
       }
 
-      if (decision.type === 'FAIL') {
-        turnRecord.status = 'FAILED';
-        turnRecord.error = decision.reason;
-        turnRecord.endedAt = Date.now();
-        turns.push(turnRecord);
-
-        const result: PlannerRunResult = {
-          runId: ctx.runId,
-          finalDecision: decision,
-          turns,
-          totalDurationMs: Date.now() - startTime,
-          success: false,
-          error: decision.reason,
-        };
-
-        this.log('INFO', `❌ FAIL: ${decision.reason}`);
-        return result;
+      if (res.type === 'FINISH') {
+        return this.finish(res.reason ?? 'llm planner finished', ctx, res.finalText);
       }
 
-      // RUN_SKILL
-      if (decision.type === 'RUN_SKILL') {
-        if (!decision.skillName) {
-          turnRecord.status = 'FAILED';
-          turnRecord.error = 'RUN_SKILL但未提供skillName';
-          turnRecord.endedAt = Date.now();
-          turns.push(turnRecord);
-          break;
-        }
+      return this.fail(res.reason ?? 'llm planner failed');
 
-        // 安全校验
-        const validation = registry.validateSkillCallable(decision.skillName, {
-          mode: ctx.mode,
-          taskType: ctx.taskType,
-          allowHighRisk: false,
-        });
+    } catch (err) {
+      ctx.log('WARN', `llmPlanner error: ${this.errMsg(err)}`);
+      return null;
+    }
+  }
 
-        if (!validation.ok) {
-          turnRecord.status = 'FAILED';
-          turnRecord.error = `技能不可用: ${validation.reason}`;
-          turnRecord.endedAt = Date.now();
-          turns.push(turnRecord);
-          break;
-        }
+  // ===================== Layer 3: 历史推断 =====================
 
-        this.log('INFO', `🔧 执行: ${decision.skillName}`);
+  private tryHistoryBasedDecision(ctx: PlannerContext, usableSkills: SkillPublicViewV2[]): PlannerDecision | null {
+    const last = this.lastTurn(ctx);
+    const lastResult = last?.skillResult;
+    if (!lastResult) return null;
 
-        // 执行技能
-        const skillStart = Date.now();
-        turnRecord.status = 'RUNNING';
-        turns.push(turnRecord);
+    if (lastResult.status === 'SUCCESS') {
+      return this.finish('last result succeeded, finish by history', ctx);
+    }
 
-        try {
-          const timeoutMs = validation.meta?.execution?.defaultTimeoutMs ?? this.defaultSkillTimeoutMs;
-          const skillResult = await skillRunner.run(decision.skillName, decision.skillInput ?? {}, { timeoutMs });
+    if (lastResult.status === 'CANCELLED') {
+      return this.fail(`last skill cancelled: ${lastResult.error ?? 'unknown reason'}`);
+    }
 
-          turnRecord.status = 'OBSERVING';
-          turnRecord.skillResult = {
-            runId: `run-${turn}`,
-            skillName: decision.skillName,
-            status: 'SUCCESS',
-            output: skillResult.output,
-            startedAt: skillStart,
-            endedAt: Date.now(),
-            durationMs: skillResult.durationMs,
+    if (lastResult.status === 'TIMEOUT') {
+      const failedSkill = last?.chosenSkill;
+      const timeoutCount = failedSkill ? this.getConsecutiveTimeoutCount(ctx, failedSkill) : 0;
+
+      if (failedSkill && timeoutCount < this.maxConsecutiveTimeoutsPerSkill) {
+        const same = this.findSkill(failedSkill, usableSkills);
+        if (same) {
+          return {
+            type: 'RUN_SKILL',
+            reason: `retry timed out skill once: ${same.name}`,
+            skillName: same.name,
+            skillInput: last?.chosenInput ?? ctx.task.payload ?? {},
           };
-          turnRecord.summary = `技能${decision.skillName}执行成功`;
-
-          this.log('INFO', `✅ ${decision.skillName} 成功，耗时 ${skillResult.durationMs}ms`);
-
-        } catch (e: any) {
-          const isTimeout = e.message?.includes('timeout') || e.message?.includes('Timeout');
-          turnRecord.status = 'FAILED';
-          turnRecord.skillResult = {
-            runId: `run-${turn}`,
-            skillName: decision.skillName,
-            status: isTimeout ? 'TIMEOUT' : 'FAILED',
-            error: e.message,
-            startedAt: skillStart,
-            endedAt: Date.now(),
-            durationMs: Date.now() - skillStart,
-            timedOut: isTimeout,
-          };
-          turnRecord.error = e.message;
-
-          this.log('WARN', `⚠️ ${decision.skillName} 失败: ${e.message}`);
         }
+      }
 
-        turnRecord.endedAt = Date.now();
-        // 更新turnRecord
-        turns[turns.length - 1] = turnRecord;
+      const alt = this.findAlternativeSkill(ctx, usableSkills, failedSkill);
+      if (alt) {
+        return {
+          type: 'RUN_SKILL',
+          reason: `switch skill after timeout: ${alt.name}`,
+          skillName: alt.name,
+          skillInput: this.buildDefaultSkillInput(ctx, alt),
+        };
+      }
+
+      return this.fail('last skill timed out and no alternative available');
+    }
+
+    if (lastResult.status === 'FAILED') {
+      const failedSkill = last?.chosenSkill;
+      const failCount = failedSkill ? this.getConsecutiveFailureCount(ctx, failedSkill) : 0;
+
+      if (failedSkill && failCount < this.maxConsecutiveFailuresPerSkill) {
+        const same = this.findSkill(failedSkill, usableSkills);
+        if (same && this.isRetryable(same)) {
+          return {
+            type: 'RUN_SKILL',
+            reason: `retry retryable failed skill: ${same.name}`,
+            skillName: same.name,
+            skillInput: last?.chosenInput ?? ctx.task.payload ?? {},
+          };
+        }
+      }
+
+      const alt = this.findAlternativeSkill(ctx, usableSkills, failedSkill);
+      if (alt) {
+        return {
+          type: 'RUN_SKILL',
+          reason: `switch to alternative after failure: ${alt.name}`,
+          skillName: alt.name,
+          skillInput: this.buildDefaultSkillInput(ctx, alt),
+        };
+      }
+
+      return this.fail('last skill failed and no alternative available');
+    }
+
+    return null;
+  }
+
+  // ===================== Layer 4: 兜底 =====================
+
+  private tryFallback(ctx: PlannerContext, usableSkills: SkillPublicViewV2[]): PlannerDecision {
+    if (this.fallbackSkillName) {
+      const skill = this.findSkill(this.fallbackSkillName, usableSkills);
+      if (skill) {
+        this.safeHook('onFallback', ctx, `use configured fallback=${skill.name}`);
+        return {
+          type: 'RUN_SKILL',
+          reason: `fallback skill: ${skill.name}`,
+          skillName: skill.name,
+          skillInput: this.buildDefaultSkillInput(ctx, skill),
+        };
       }
     }
 
-    // 达到最大回合
-    const failDecision: PlannerDecision = {
-      type: 'FAIL',
-      reason: `达到最大回合数 ${this.maxTurns}`,
-    };
+    const ranked = this.rankSkillsForFallback(ctx, usableSkills);
+    if (ranked.length > 0) {
+      const skill = ranked[0];
+      this.safeHook('onFallback', ctx, `use ranked fallback=${skill.name}`);
+      return {
+        type: 'RUN_SKILL',
+        reason: `ranked fallback skill: ${skill.name}`,
+        skillName: skill.name,
+        skillInput: this.buildDefaultSkillInput(ctx, skill),
+      };
+    }
 
+    return this.fail('planner fallback failed: no usable skill');
+  }
+
+  // ===================== 兜底评分 =====================
+
+  private rankSkillsForFallback(ctx: PlannerContext, skills: SkillPublicViewV2[]): SkillPublicViewV2[] {
+    const taskType = (ctx.task.taskType ?? '').toLowerCase();
+    const goal = ctx.task.userGoal.toLowerCase();
+
+    return [...skills].sort((a, b) => {
+      const sa = this.computeFallbackScore(a, taskType, goal);
+      const sb = this.computeFallbackScore(b, taskType, goal);
+      return sb - sa;
+    });
+  }
+
+  private computeFallbackScore(skill: SkillPublicViewV2, taskType: string, goal: string): number {
+    let score = 0;
+
+    if (skill.riskLevel === 'LOW') score += 30;
+    if (skill.capabilities.readOnly) score += 20;
+    if (skill.execution.idempotent) score += 10;
+    if (skill.execution.pageReusePreferred) score += 5;
+
+    if (taskType && skill.category?.toLowerCase() === taskType) score += 40;
+    if (taskType && skill.domains.some((d) => d.toLowerCase() === taskType)) score += 30;
+
+    for (const tag of skill.tags) {
+      if (goal.includes(tag.toLowerCase())) score += 8;
+    }
+
+    if (skill.name.includes('search') &&
+        (goal.includes('search') || goal.includes('搜索') || goal.includes('google'))) {
+      score += 20;
+    }
+
+    if (skill.name.includes('browse') || skill.domains.includes('BROWSE')) score += 5;
+
+    return score;
+  }
+
+  // ===================== 辅助方法 =====================
+
+  private findAlternativeSkill(
+    ctx: PlannerContext,
+    skills: SkillPublicViewV2[],
+    exclude?: string
+  ): SkillPublicViewV2 | null {
+    const currentTaskType = (ctx.task.taskType ?? '').toLowerCase();
+    const excludeResolved = exclude?.trim();
+
+    const candidates = skills
+      .filter((s) => s.name !== excludeResolved)
+      .sort((a, b) => {
+        const sa = this.alternativeScore(ctx, a, currentTaskType);
+        const sb = this.alternativeScore(ctx, b, currentTaskType);
+        return sb - sa;
+      });
+
+    return candidates[0] ?? null;
+  }
+
+  private alternativeScore(ctx: PlannerContext, skill: SkillPublicViewV2, currentTaskType: string): number {
+    let score = 0;
+
+    if (skill.riskLevel === 'LOW') score += 20;
+    if (skill.capabilities.readOnly) score += 20;
+    if (skill.execution.retryable) score += 5;
+    if (skill.execution.idempotent) score += 5;
+
+    if (currentTaskType && skill.category?.toLowerCase() === currentTaskType) score += 25;
+    if (currentTaskType && skill.domains.some((d) => d.toLowerCase() === currentTaskType)) score += 15;
+
+    const goal = ctx.task.userGoal.toLowerCase();
+    if (skill.tags.some((t) => goal.includes(t.toLowerCase()))) score += 10;
+
+    return score;
+  }
+
+  private isRetryable(skill: SkillPublicViewV2): boolean {
+    return !!skill.execution.retryable && (skill.execution.maxRetries ?? 0) > 0;
+  }
+
+  private shouldAvoidDueToFailures(ctx: PlannerContext, skillName: string): boolean {
+    return this.getConsecutiveFailureCount(ctx, skillName) >= this.maxConsecutiveFailuresPerSkill;
+  }
+
+  private shouldAvoidDueToTimeouts(ctx: PlannerContext, skillName: string): boolean {
+    return this.getConsecutiveTimeoutCount(ctx, skillName) >= this.maxConsecutiveTimeoutsPerSkill;
+  }
+
+  private getConsecutiveFailureCount(ctx: PlannerContext, skillName: string): number {
+    let count = 0;
+    for (let i = ctx.turns.length - 1; i >= 0; i--) {
+      const t = ctx.turns[i];
+      if (t.chosenSkill !== skillName) break;
+      if (t.skillResult?.status === 'FAILED') { count++; continue; }
+      break;
+    }
+    return count;
+  }
+
+  private getConsecutiveTimeoutCount(ctx: PlannerContext, skillName: string): number {
+    let count = 0;
+    for (let i = ctx.turns.length - 1; i >= 0; i--) {
+      const t = ctx.turns[i];
+      if (t.chosenSkill !== skillName) break;
+      if (t.skillResult?.status === 'TIMEOUT') { count++; continue; }
+      break;
+    }
+    return count;
+  }
+
+  private findSkill(nameOrAlias: string, skills: SkillPublicViewV2[]): SkillPublicViewV2 | null {
+    const key = nameOrAlias.trim();
+    if (!key) return null;
+    for (const skill of skills) {
+      if (skill.name === key) return skill;
+      if (skill.aliases.includes(key)) return skill;
+    }
+    return null;
+  }
+
+  private lastTurn(ctx: PlannerContext): PlannerTurnRecord | undefined {
+    return ctx.turns[ctx.turns.length - 1];
+  }
+
+  private lastResult(): PlannerSkillResult | undefined {
+    return this.lastTurn.arguments?.[0]?.skillResult;
+  }
+
+  private buildDefaultSkillInput(ctx: PlannerContext, skill: SkillPublicViewV2): unknown {
+    const payload = ctx.task.payload ?? {};
+    const goal = ctx.task.userGoal;
+
+    if (skill.name === 'google-search' || skill.aliases.includes('search-google')) {
+      return { keyword: payload['keyword'] ?? goal };
+    }
+
+    return payload;
+  }
+
+  private buildDefaultFinalText(ctx: PlannerContext): string {
+    const last = this.lastTurn(ctx);
+    const output = last?.skillResult?.output;
+    if (output == null) return '任务已完成。';
+    const text = this.safeJson(output);
+    if (text.length <= 320) return `任务已完成。结果：${text}`;
+    return `任务已完成。结果摘要：${text.slice(0, 320)}...`;
+  }
+
+  private finish(reason: string, ctx?: PlannerContext, finalText?: string): PlannerDecision {
     return {
-      runId: ctx.runId,
-      finalDecision: failDecision,
-      turns,
-      totalDurationMs: Date.now() - startTime,
-      success: false,
-      error: 'max_turns_exceeded',
+      type: 'FINISH',
+      reason,
+      finalText: finalText ?? (ctx ? this.buildDefaultFinalText(ctx) : '任务已完成。'),
     };
   }
 
-  private log(level: LogLevel, message: string): void {
-    const ts = new Date().toISOString();
-    console.log(`[${ts}] [${this.logPrefix}] [${level}] ${message}`);
+  private fail(reason: string): PlannerDecision {
+    return { type: 'FAIL', reason };
   }
+
+  private async safeHook(name: keyof PlannerHooksV2, ctx: PlannerContext, arg?: unknown): Promise<void> {
+    const hook = this.hooks?.[name];
+    if (!hook) return;
+    try {
+      if (name === 'onBeforePlan') { await (hook as (c: PlannerContext) => Promise<void>)(ctx); }
+      else if (name === 'onAfterPlan') { await (hook as (c: PlannerContext, d: PlannerDecision) => Promise<void>)(ctx, arg as PlannerDecision); }
+      else if (name === 'onFallback') { await (hook as (c: PlannerContext, r: string) => Promise<void>)(ctx, String(arg)); }
+    } catch (err) {
+      console.warn(`hook ${String(name)} failed:`, err);
+    }
+  }
+
+  private safeJson(value: unknown): string {
+    try { return JSON.stringify(value); } catch { return '[unserializable]'; }
+  }
+
+  private errMsg(err: unknown): string {
+    return err instanceof Error ? err.message : String(err);
+  }
+}
+
+// ===================== 默认规则工厂 =====================
+
+export function createDefaultPlannerRulesV2(): SkillRouteRuleV2[] {
+  return [
+    {
+      name: 'google-search-rule',
+      skillName: 'google-search',
+      reason: 'goal strongly suggests web search',
+      score: (ctx) => {
+        const goal = ctx.task.userGoal.toLowerCase();
+        const taskType = (ctx.task.taskType ?? '').toLowerCase();
+        let score = 0;
+        if (goal.includes('google')) score += 100;
+        if (goal.includes('搜索')) score += 90;
+        if (goal.includes('search')) score += 80;
+        if (taskType === 'search') score += 70;
+        return score;
+      },
+      buildInput: (ctx) => ({ keyword: ctx.task.payload?.['keyword'] ?? ctx.task.userGoal }),
+    },
+    {
+      name: 'smart-search-rule',
+      skillName: 'smart-search',
+      reason: 'multi-channel intelligence search',
+      score: (ctx) => {
+        const goal = ctx.task.userGoal.toLowerCase();
+        let score = 0;
+        if (goal.includes('招标') || goal.includes('采购')) score += 80;
+        if (goal.includes('情报') || goal.includes('调研')) score += 70;
+        if (goal.includes('政府') && goal.includes('搜索')) score += 60;
+        return score;
+      },
+      buildInput: (ctx) => ({ keyword: ctx.task.payload?.['keyword'] ?? ctx.task.userGoal }),
+    },
+    {
+      name: 'x-search-rule',
+      skillName: 'x-search',
+      reason: 'X/Twitter social search',
+      score: (ctx) => {
+        const goal = ctx.task.userGoal.toLowerCase();
+        let score = 0;
+        if (goal.includes('twitter') || goal.includes('x.com')) score += 90;
+        if (goal.includes('社交') && goal.includes('搜索')) score += 70;
+        return score;
+      },
+      buildInput: (ctx) => ({ keyword: ctx.task.payload?.['keyword'] ?? ctx.task.userGoal }),
+    },
+  ];
 }
