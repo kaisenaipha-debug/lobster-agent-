@@ -1,0 +1,110 @@
+# docker-compose.yml - 生产级浏览器基础设施
+#
+# 用途：本地开发/测试环境
+# 启动：docker-compose up -d
+# 停止：docker-compose down
+#
+# 包含服务：
+#   - browserless/chrome: Chrome无头浏览器
+#   - browser-service: Node.js BrowserService
+#   - watchdog: Kotlin Watchdog
+#   - redis: Session存储 + 消息队列
+
+version: '3.8'
+
+services:
+  # Chrome无头浏览器
+  chrome:
+    image: browserless/chrome:latest
+    container_name: lobster-chrome
+    ports:
+      - "9222:9222"    # CDP调试端口
+      - "3000:3000"    # HTTP API
+    environment:
+      - MAX_CONCURRENT_SESSIONS=10
+      - CONNECTION_TIMEOUT=60000
+      - MAX_QUEUE_LENGTH=20
+      - CHROME_FLAGS=--disable-dev-shm-usage --no-sandbox --disable-gpu --disable-web-security
+    volumes:
+      - chrome-data:/tmp/browserless
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Node.js BrowserService
+  browser-service:
+    build:
+      context: ./browser-service
+      dockerfile: Dockerfile
+    container_name: lobster-browser-service
+    ports:
+      - "4000:4000"    # RPC HTTP端口
+    environment:
+      - NODE_ENV=production
+      - CHROME_ENDPOINT=chrome:9222
+      - REDIS_URL=redis://redis:6379
+      - LOG_LEVEL=info
+      - MAX_RECONNECT=5
+      - RECONNECT_DELAYS=2000,4000,8000,16000,32000
+    depends_on:
+      chrome:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+
+  # Kotlin Watchdog（健康检查+自动重启）
+  watchdog:
+    build:
+      context: ./watchdog
+      dockerfile: Dockerfile
+    container_name: lobster-watchdog
+    environment:
+      - CHECK_INTERVAL_MS=30000
+      - MAX_CONSECUTIVE_FAILURES=3
+      - QUARANTINE_MS=15000
+      - CHROME_HOST=chrome
+      - CHROME_CDP_PORT=9222
+      - BROWSER_SERVICE_URL=http://browser-service:4000
+      - LOG_DIR=/app/logs
+    volumes:
+      - watchdog-logs:/app/logs
+    depends_on:
+      - browser-service
+    restart: unless-stopped
+
+  # Redis（Session存储 + 消息队列）
+  redis:
+    image: redis:7-alpine
+    container_name: lobster-redis
+    ports:
+      - "6379:6379"
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+    volumes:
+      - redis-data:/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  # 可选：Prometheus监控
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: lobster-prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus-data:/prometheus
+    restart: unless-stopped
+
+volumes:
+  chrome-data:
+  watchdog-logs:
+  prometheus-data:
+  redis-data:
